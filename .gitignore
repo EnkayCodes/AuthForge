@@ -9,3 +9,9 @@ dist/
 # Internal design docs — kept local, not published
 docs/design/
 docs/plans/
+
+# build outputs
+**/dist/
+**/*.tsbuildinfo
+# prisma generated client
+packages/db/src/generated/
