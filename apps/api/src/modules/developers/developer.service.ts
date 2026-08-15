@@ -1,5 +1,5 @@
 import { prisma, Prisma } from "@authforge/db";
-import { hashPassword } from "../../lib/password.js";
+import { hashPassword, verifyPassword } from "../../lib/password.js";
 import { HttpError } from "../../middleware/error-handler.js";
 
 export interface PublicDeveloper {
@@ -32,5 +32,17 @@ export async function createDeveloper(input: {
     }
     throw err;
   }
+  return { id: developer.id, email: developer.email, name: developer.name };
+}
+
+export async function authenticateDeveloper(input: {
+  email: string;
+  password: string;
+}): Promise<PublicDeveloper> {
+  const email = input.email.toLowerCase();
+  const developer = await prisma.developer.findUnique({ where: { email } });
+  if (!developer) throw new HttpError(401, "Invalid credentials");
+  const ok = await verifyPassword(developer.passwordHash, input.password);
+  if (!ok) throw new HttpError(401, "Invalid credentials");
   return { id: developer.id, email: developer.email, name: developer.name };
 }

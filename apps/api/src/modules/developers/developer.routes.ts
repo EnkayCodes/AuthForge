@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { signupSchema } from "./developer.schema.js";
-import { createDeveloper } from "./developer.service.js";
+import { signupSchema, loginSchema } from "./developer.schema.js";
+import { createDeveloper, authenticateDeveloper } from "./developer.service.js";
 import { signSessionToken } from "../../lib/session-token.js";
 import { HttpError } from "../../middleware/error-handler.js";
 
@@ -13,6 +13,18 @@ developerRouter.post("/developers/signup", async (req, res, next) => {
     const developer = await createDeveloper(parsed.data);
     const token = signSessionToken({ developerId: developer.id });
     res.status(201).json({ developer, token });
+  } catch (err) {
+    next(err);
+  }
+});
+
+developerRouter.post("/developers/login", async (req, res, next) => {
+  try {
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) throw new HttpError(400, "Invalid login payload");
+    const developer = await authenticateDeveloper(parsed.data);
+    const token = signSessionToken({ developerId: developer.id });
+    res.status(200).json({ developer, token });
   } catch (err) {
     next(err);
   }
