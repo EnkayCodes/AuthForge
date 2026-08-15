@@ -1,3 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Prisma's postinstall fetches its query engine; pnpm blocks build scripts
+# unless a package is explicitly allowed.
+allowBuilds:
+  "@prisma/client": true
+  "@prisma/engines": true
+  prisma: true
