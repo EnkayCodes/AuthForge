@@ -1,4 +1,4 @@
-import { prisma } from "@authforge/db";
+import { prisma, Prisma } from "@authforge/db";
 import { hashPassword } from "../../lib/password.js";
 import { HttpError } from "../../middleware/error-handler.js";
 
@@ -17,12 +17,20 @@ export async function createDeveloper(input: {
   const existing = await prisma.developer.findUnique({ where: { email } });
   if (existing) throw new HttpError(409, "Email already registered");
 
-  const developer = await prisma.developer.create({
-    data: {
-      email,
-      name: input.name,
-      passwordHash: await hashPassword(input.password),
-    },
-  });
+  let developer;
+  try {
+    developer = await prisma.developer.create({
+      data: {
+        email,
+        name: input.name,
+        passwordHash: await hashPassword(input.password),
+      },
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      throw new HttpError(409, "Email already registered");
+    }
+    throw err;
+  }
   return { id: developer.id, email: developer.email, name: developer.name };
 }

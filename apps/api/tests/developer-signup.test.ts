@@ -38,4 +38,15 @@ describe("POST /developers/signup", () => {
       .send({ email: "dev@example.com", password: "short", name: "Dev" });
     expect(res.status).toBe(400);
   });
+
+  it("returns exactly one 201 and one 409 for concurrent signups with the same email", async () => {
+    const app = createApp();
+    const body = { email: "concurrent@example.com", password: "password123", name: "Dev" };
+    const [resA, resB] = await Promise.all([
+      request(app).post("/developers/signup").send(body),
+      request(app).post("/developers/signup").send(body),
+    ]);
+    const statuses = [resA.status, resB.status].sort();
+    expect(statuses).toEqual([201, 409]);
+  });
 });
