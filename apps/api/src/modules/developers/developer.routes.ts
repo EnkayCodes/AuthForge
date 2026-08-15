@@ -3,6 +3,7 @@ import { signupSchema, loginSchema } from "./developer.schema.js";
 import { createDeveloper, authenticateDeveloper } from "./developer.service.js";
 import { signSessionToken } from "../../lib/session-token.js";
 import { HttpError } from "../../middleware/error-handler.js";
+import { requireDeveloper } from "../../middleware/require-developer.js";
 
 export const developerRouter: Router = Router();
 
@@ -28,4 +29,8 @@ developerRouter.post("/developers/login", async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+developerRouter.get("/developers/me", requireDeveloper, (req, res) => {
+  res.status(200).json({ developer: req.developer });
 });
