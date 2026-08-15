@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { prisma, Prisma } from "@authforge/db";
 import { hashPassword, verifyPassword } from "../../lib/password.js";
 import { HttpError } from "../../middleware/error-handler.js";
@@ -35,13 +36,30 @@ export async function createDeveloper(input: {
   return { id: developer.id, email: developer.email, name: developer.name };
 }
 
+// Verifying a password costs a few hundred milliseconds of Argon2 work. If the
+// unknown-email path skipped that work it would return measurably faster than a
+// wrong-password attempt, letting an attacker enumerate registered accounts by
+// timing alone. Hashing a throwaway secret gives us a decoy to verify against so
+// both paths do the same work. Computed once, lazily, to keep startup cheap.
+let decoyPasswordHash: Promise<string> | undefined;
+
+function getDecoyPasswordHash(): Promise<string> {
+  decoyPasswordHash ??= hashPassword(randomBytes(32).toString("hex"));
+  return decoyPasswordHash;
+}
+
 export async function authenticateDeveloper(input: {
   email: string;
   password: string;
 }): Promise<PublicDeveloper> {
   const email = input.email.toLowerCase();
   const developer = await prisma.developer.findUnique({ where: { email } });
-  if (!developer) throw new HttpError(401, "Invalid credentials");
+
+  if (!developer) {
+    await verifyPassword(await getDecoyPasswordHash(), input.password);
+    throw new HttpError(401, "Invalid credentials");
+  }
+
   const ok = await verifyPassword(developer.passwordHash, input.password);
   if (!ok) throw new HttpError(401, "Invalid credentials");
   return { id: developer.id, email: developer.email, name: developer.name };
