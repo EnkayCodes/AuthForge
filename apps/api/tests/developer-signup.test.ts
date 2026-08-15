@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import request from "supertest";
+import { prisma, Prisma } from "@authforge/db";
 import { createApp } from "../src/app.js";
 import { resetDb } from "./helpers/db.js";
 
@@ -48,5 +49,46 @@ describe("POST /developers/signup", () => {
     ]);
     const statuses = [resA.status, resB.status].sort();
     expect(statuses).toEqual([201, 409]);
+  });
+});
+
+// The concurrency test above proves the endpoint behaves correctly under real
+// concurrent load, but it cannot guarantee the unique-constraint branch ran —
+// if the two requests happen to serialize, the pre-check returns 409 first.
+// These two stub only the single `create` call to pin that branch deterministically.
+describe("POST /developers/signup — unique-constraint handling", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function prismaError(code: string) {
+    return new Prisma.PrismaClientKnownRequestError("constraint failure", {
+      code,
+      clientVersion: Prisma.prismaVersion.client,
+    });
+  }
+
+  it("translates a P2002 unique-constraint violation into 409", async () => {
+    vi.spyOn(prisma.developer, "create").mockRejectedValueOnce(prismaError("P2002"));
+
+    const res = await request(createApp())
+      .post("/developers/signup")
+      .send({ email: "raced@example.com", password: "password123", name: "Dev" });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.message).toBe("Email already registered");
+  });
+
+  it("does not mislabel an unrelated database error as a duplicate email", async () => {
+    vi.spyOn(prisma.developer, "create").mockRejectedValueOnce(prismaError("P1001"));
+    // The error handler logs unexpected errors; silence it so output stays pristine.
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const res = await request(createApp())
+      .post("/developers/signup")
+      .send({ email: "broken@example.com", password: "password123", name: "Dev" });
+
+    expect(res.status).toBe(500);
+    expect(res.body.error.message).toBe("Internal server error");
   });
 });
