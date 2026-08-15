@@ -5,7 +5,7 @@ import { z } from "zod";
 
 // apps/api/src -> monorepo root
 const rootEnv = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../.env");
-config({ path: rootEnv });
+config({ path: rootEnv, quiet: true });
 
 const schema = z.object({
   PORT: z.coerce.number().default(4000),
