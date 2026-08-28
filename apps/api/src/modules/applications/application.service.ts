@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "@authforge/db";
+import { HttpError } from "../../middleware/error-handler.js";
 
 export interface PublicApplication {
   id: string;
@@ -53,5 +54,26 @@ export async function createApplication(
       clientId: `app_${randomBytes(16).toString("hex")}`,
     },
   });
+  return toPublicApplication(application);
+}
+
+export async function listApplications(developerId: string): Promise<PublicApplication[]> {
+  const applications = await prisma.application.findMany({
+    where: { developerId },
+    orderBy: { createdAt: "desc" },
+  });
+  return applications.map(toPublicApplication);
+}
+
+// The ownership filter lives in the query so another developer's application is
+// indistinguishable from one that does not exist.
+export async function getApplication(
+  developerId: string,
+  applicationId: string,
+): Promise<PublicApplication> {
+  const application = await prisma.application.findFirst({
+    where: { id: applicationId, developerId },
+  });
+  if (!application) throw new HttpError(404, "Application not found");
   return toPublicApplication(application);
 }
