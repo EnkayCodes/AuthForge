@@ -17,5 +17,48 @@ model Developer {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  applications Application[]
+
   @@map("developers")
+}
+
+enum Environment {
+  development
+  staging
+  production
+}
+
+model Application {
+  id              String      @id @default(cuid())
+  developerId     String
+  name            String
+  environment     Environment @default(development)
+  clientId        String      @unique
+  redirectUris    String[]    @default([])
+  accessTokenTtl  String      @default("15m")
+  refreshTokenTtl String      @default("30d")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  apiKeys   ApiKey[]
+
+  @@index([developerId])
+  @@map("applications")
+}
+
+model ApiKey {
+  id            String    @id @default(cuid())
+  applicationId String
+  keyId         String    @unique
+  secretHash    String
+  label         String
+  lastUsedAt    DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("api_keys")
 }
