@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { prisma } from "@authforge/db";
 import { verifySessionToken } from "../lib/session-token.js";
 import { HttpError } from "./error-handler.js";
+import { toPublicDeveloper } from "../modules/developers/developer.service.js";
 import type { PublicDeveloper } from "../modules/developers/developer.service.js";
 
 declare global {
@@ -24,7 +25,7 @@ export async function requireDeveloper(req: Request, _res: Response, next: NextF
     });
     if (!developer) throw new HttpError(401, "Unauthorized");
 
-    req.developer = { id: developer.id, email: developer.email, name: developer.name };
+    req.developer = toPublicDeveloper(developer);
     next();
   } catch (err) {
     next(err);

@@ -9,6 +9,18 @@ export interface PublicDeveloper {
   name: string;
 }
 
+// The single place a Developer row becomes client-visible. Picking fields
+// explicitly here (rather than spreading the row at each call site) means a
+// column added later — another credential, a recovery code — cannot leak by
+// default, and there is only one place to audit.
+export function toPublicDeveloper(developer: {
+  id: string;
+  email: string;
+  name: string;
+}): PublicDeveloper {
+  return toPublicDeveloper(developer);
+}
+
 export async function createDeveloper(input: {
   email: string;
   password: string;
@@ -33,7 +45,7 @@ export async function createDeveloper(input: {
     }
     throw err;
   }
-  return { id: developer.id, email: developer.email, name: developer.name };
+  return toPublicDeveloper(developer);
 }
 
 // Verifying a password costs a few hundred milliseconds of Argon2 work. If the
@@ -62,5 +74,5 @@ export async function authenticateDeveloper(input: {
 
   const ok = await verifyPassword(developer.passwordHash, input.password);
   if (!ok) throw new HttpError(401, "Invalid credentials");
-  return { id: developer.id, email: developer.email, name: developer.name };
+  return toPublicDeveloper(developer);
 }
