@@ -23,10 +23,16 @@ async function createApplicationFor(app: ReturnType<typeof createApp>, token: st
 describe("GET /applications", () => {
   it("lists only the authenticated developer's applications", async () => {
     const app = createApp();
-    const alice = await signUpDeveloper(app, "alice@example.com");
-    const bob = await signUpDeveloper(app, "bob@example.com");
-    await createApplicationFor(app, alice, "Alice App");
-    await createApplicationFor(app, bob, "Bob App");
+    // Independent setup, so run it concurrently — sequential round trips to a
+    // remote database dominate this test's runtime.
+    const [alice, bob] = await Promise.all([
+      signUpDeveloper(app, "alice@example.com"),
+      signUpDeveloper(app, "bob@example.com"),
+    ]);
+    await Promise.all([
+      createApplicationFor(app, alice, "Alice App"),
+      createApplicationFor(app, bob, "Bob App"),
+    ]);
 
     const res = await request(app).get("/applications").set("Authorization", `Bearer ${alice}`);
 

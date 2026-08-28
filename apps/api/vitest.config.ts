@@ -8,6 +8,9 @@ export default defineConfig({
     fileParallelism: false,
     // DB-touching tests round-trip to a live Postgres instance (plus Argon2
     // hashing, ~a few hundred ms per call); the 5s default is too tight.
-    testTimeout: 20000,
+    // A test that seeds several developers and applications makes many round
+    // trips to a remote database, and Argon2 hashing sits on top of each signup.
+    // CI runs against a local Postgres container and finishes far inside this.
+    testTimeout: 45000,
   },
 });
