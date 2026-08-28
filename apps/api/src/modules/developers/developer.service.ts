@@ -18,7 +18,7 @@ export function toPublicDeveloper(developer: {
   email: string;
   name: string;
 }): PublicDeveloper {
-  return toPublicDeveloper(developer);
+  return { id: developer.id, email: developer.email, name: developer.name };
 }
 
 export async function createDeveloper(input: {
