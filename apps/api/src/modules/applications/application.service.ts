@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { prisma } from "@authforge/db";
+import { prisma, Prisma } from "@authforge/db";
 import { HttpError } from "../../middleware/error-handler.js";
 
 export interface PublicApplication {
@@ -76,4 +76,42 @@ export async function getApplication(
   });
   if (!application) throw new HttpError(404, "Application not found");
   return toPublicApplication(application);
+}
+
+export async function updateApplication(
+  developerId: string,
+  applicationId: string,
+  input: {
+    name?: string;
+    redirectUris?: string[];
+    accessTokenTtl?: string;
+    refreshTokenTtl?: string;
+  },
+): Promise<PublicApplication> {
+  // A single atomic statement: the extra developerId filter enforces ownership
+  // in the same query, and the updated row comes back with it. Updating and
+  // then re-reading would leave a window where a concurrent delete turns a
+  // successful update into a misleading 404.
+  try {
+    const application = await prisma.application.update({
+      where: { id: applicationId, developerId },
+      data: input,
+    });
+    return toPublicApplication(application);
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
+      throw new HttpError(404, "Application not found");
+    }
+    throw err;
+  }
+}
+
+export async function deleteApplication(
+  developerId: string,
+  applicationId: string,
+): Promise<void> {
+  const result = await prisma.application.deleteMany({
+    where: { id: applicationId, developerId },
+  });
+  if (result.count === 0) throw new HttpError(404, "Application not found");
 }
