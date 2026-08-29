@@ -21,6 +21,11 @@ const schema = z.object({
     .string()
     .regex(/^\d+(\.\d+)?\s?(ms|s|m|h|d|w|y)?$/, "must be a duration like 30s, 15m, 24h or 7d")
     .default("7d"),
+  // Seconds, not a duration string. Unlike the JWT TTLs above — which
+  // jsonwebtoken parses itself — these are only ever used for Date arithmetic,
+  // so a string form would mean carrying a duration parser for no benefit.
+  VERIFICATION_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(86400),
+  PASSWORD_RESET_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 });
 
 export const env = schema.parse(process.env);

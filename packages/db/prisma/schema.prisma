@@ -37,11 +37,16 @@ model Application {
   redirectUris    String[]    @default([])
   accessTokenTtl  String      @default("15m")
   refreshTokenTtl String      @default("30d")
+  // Whether an end-user must verify their email before they can authenticate.
+  // A per-tenant policy rather than a platform-wide rule, because real
+  // deployments differ on how much friction they want at first sign-in.
+  requireVerifiedEmail Boolean @default(true)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
   apiKeys   ApiKey[]
+  endUsers  EndUser[]
 
   @@index([developerId])
   @@map("applications")
@@ -61,4 +66,52 @@ model ApiKey {
 
   @@index([applicationId])
   @@map("api_keys")
+}
+
+model EndUser {
+  id              String    @id @default(cuid())
+  applicationId   String
+  email           String
+  passwordHash    String
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  application         Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  verificationTokens  VerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+
+  // The composite unique is what makes an end-user belong to exactly one
+  // application: the same address can exist independently in two tenants.
+  // It also serves as the applicationId index, so no separate @@index.
+  @@unique([applicationId, email])
+  @@map("end_users")
+}
+
+model VerificationToken {
+  id        String    @id @default(cuid())
+  endUserId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  endUserId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@map("password_reset_tokens")
 }
