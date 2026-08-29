@@ -1,11 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { prisma, Prisma } from "@authforge/db";
 import { HttpError } from "../../middleware/error-handler.js";
+import type { ApiKeyEnvironment } from "../../lib/api-key.js";
 
 export interface PublicApplication {
   id: string;
   name: string;
-  environment: string;
+  environment: ApiKeyEnvironment;
   clientId: string;
   redirectUris: string[];
   accessTokenTtl: string;
@@ -18,7 +19,7 @@ export interface PublicApplication {
 export function toPublicApplication(application: {
   id: string;
   name: string;
-  environment: string;
+  environment: ApiKeyEnvironment;
   clientId: string;
   redirectUris: string[];
   accessTokenTtl: string;

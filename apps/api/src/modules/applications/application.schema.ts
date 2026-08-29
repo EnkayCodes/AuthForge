@@ -26,6 +26,10 @@ export const createApplicationSchema = z.object({
   redirectUris: z.array(redirectUri).max(20).optional(),
 });
 
+export const issueApiKeySchema = z.object({
+  label: z.string().min(1).max(60),
+});
+
 export const updateApplicationSchema = z
   .object({
     name: z.string().min(1).max(80).optional(),

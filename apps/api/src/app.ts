@@ -2,6 +2,7 @@ import express from "express";
 import { healthRouter } from "./modules/health/health.routes.js";
 import { developerRouter } from "./modules/developers/developer.routes.js";
 import { applicationRouter } from "./modules/applications/application.routes.js";
+import { apiKeyRouter } from "./modules/applications/api-key.routes.js";
 import { errorHandler } from "./middleware/error-handler.js";
 
 export function createApp(): express.Express {
@@ -10,6 +11,7 @@ export function createApp(): express.Express {
   app.use(healthRouter);
   app.use(developerRouter);
   app.use(applicationRouter);
+  app.use(apiKeyRouter);
   app.use(errorHandler);
   return app;
 }
