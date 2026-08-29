@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireDeveloper } from "../../middleware/require-developer.js";
+import { requireApiKey } from "../../middleware/require-api-key.js";
 import { HttpError } from "../../middleware/error-handler.js";
 import { createApplicationSchema, updateApplicationSchema } from "./application.schema.js";
 import {
@@ -34,6 +35,10 @@ applicationRouter.get("/applications", requireDeveloper, async (req, res, next) 
   } catch (err) {
     next(err);
   }
+});
+
+applicationRouter.get("/applications/current", requireApiKey, (req, res) => {
+  res.status(200).json({ application: req.application });
 });
 
 applicationRouter.get("/applications/:id", requireDeveloper, async (req, res, next) => {
