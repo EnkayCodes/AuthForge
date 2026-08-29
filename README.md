@@ -8,17 +8,20 @@ Developers register an application, receive credentials, and delegate authentica
 
 ## Status
 
-**Foundation phase — complete and tested.** The developer-account layer works end to end: registration, authentication, session tokens, and a guard protecting authenticated routes.
+**Two phases complete and tested.** A developer can register an account, create applications, issue API keys for them, and use those keys to authenticate machine-to-machine requests.
 
-The broader platform described in the [roadmap](#roadmap) — hosted login, OAuth2 authorization-code flow with PKCE, RBAC, MFA — is not built yet. This repository is honest about where that line falls.
+The broader platform described in the [roadmap](#roadmap) — end-user authentication, hosted login, OAuth2 with PKCE, RBAC, MFA — is not built yet. This repository is honest about where that line falls.
 
 | Area | State |
 | --- | --- |
 | Monorepo, TypeScript, database schema | Done |
 | Developer signup / login / session tokens | Done |
 | Authenticated-route guard | Done |
-| Test suite | 25 tests |
-| Applications, API keys, end-user auth | Planned |
+| Applications — full CRUD, owner-scoped | Done |
+| API keys — issue, list, revoke | Done |
+| API key authentication | Done |
+| Test suite | 77 tests |
+| End-user authentication | Planned |
 | OAuth2 + PKCE, hosted login page | Planned |
 | RBAC, MFA, audit log | Planned |
 
@@ -33,6 +36,9 @@ Authentication is deceptively hard. The naive version — hash a password, issue
 - **Race-safe registration.** Two concurrent signups for the same email produce exactly one `201` and one `409`, not a `500` from a raw constraint violation.
 - **Revocation on every request.** The guard re-reads the developer from the database rather than trusting the token payload, so a deleted account cannot keep authenticating with a still-valid token.
 - **No credential leakage by construction.** The client-visible shape is built in exactly one place, so a column added later cannot leak by default.
+- **The right hash for the job.** Passwords use Argon2id, deliberately slow to make guessing a weak human secret expensive. API keys use SHA-256 — a key is 256 bits of randomness, so guessing is already hopeless, and a slow hash would only add latency to every authenticated request.
+- **Absence is indistinguishable from denial.** Asking for another developer's application returns `404`, identical to an id that never existed. A `403` would confirm the resource exists. The ownership filter lives inside the database query, so it cannot be forgotten at a call site.
+- **API key secrets are shown once.** Only a hash is stored. There is no endpoint that can return a key again — lose it and you rotate. A database dump yields no working credentials.
 
 ---
 
@@ -47,11 +53,14 @@ apps/
       lib/
         password.ts        Argon2id hashing and verification
         session-token.ts   JWT signing and verification (HS256)
+        api-key.ts         API key generation, parsing, timing-safe verification
       middleware/
         error-handler.ts   HttpError -> JSON, central and last
-        require-developer.ts   Bearer-token auth guard
+        require-developer.ts   Session-token guard — authenticates a developer
+        require-api-key.ts     API key guard — authenticates an application
       modules/
         developers/        schema (validation) / service (logic) / routes (HTTP)
+        applications/      same split, plus a separate service for API keys
     tests/                 Vitest + Supertest
 packages/
   db/                      Prisma schema and shared client singleton
@@ -116,6 +125,26 @@ All responses are JSON. Errors use a single consistent shape:
 { "error": { "message": "Invalid credentials" } }
 ```
 
+### Two kinds of credential
+
+Both arrive in the same header — `Authorization: Bearer <token>` — but they authenticate different things and are never interchangeable:
+
+| | **Session token** | **API key** |
+| --- | --- | --- |
+| Identifies | a developer | an application |
+| Obtained from | signup or login | `POST /applications/:id/keys` |
+| Used for | managing your applications and keys | machine-to-machine calls |
+| Format | a JWT | `af_live_…` / `af_test_…` |
+| Lifetime | expires (7d default) | until revoked |
+
+Presenting one where the other is expected returns `401`. There are tests for both directions.
+
+---
+
+## Developer endpoints
+
+Authenticated with a **session token**.
+
 ### `POST /developers/signup`
 
 ```json
@@ -143,13 +172,93 @@ Requires `Authorization: Bearer <token>`.
 
 ---
 
+## Application endpoints
+
+Authenticated with a **session token**. Every route is scoped to the calling developer: another developer's application returns `404`, never `403`.
+
+### `POST /applications`
+
+```json
+{ "name": "Acme Notes", "environment": "production", "redirectUris": ["https://acme.test/callback"] }
+```
+
+`environment` defaults to `development`; `redirectUris` defaults to empty. Redirect URIs must be `https`, or `http` on genuine `localhost` / `127.0.0.1` — a host that merely *starts with* localhost is rejected.
+
+`201` → `{ "application": { "id", "name", "environment", "clientId", "redirectUris", "accessTokenTtl", "refreshTokenTtl", "createdAt" } }`
+`400` invalid payload · `401` not authenticated
+
+### `GET /applications`
+
+`200` → `{ "applications": [ … ] }` — yours only, newest first.
+
+### `GET /applications/:id`
+
+`200` → `{ "application": { … } }` · `404` unknown or not yours
+
+### `PATCH /applications/:id`
+
+Any of `name`, `redirectUris`, `accessTokenTtl`, `refreshTokenTtl`. At least one is required.
+
+`200` → `{ "application": { … } }`
+`400` empty payload or invalid duration · `404` unknown or not yours
+
+### `DELETE /applications/:id`
+
+`204` no content · `404` unknown or not yours
+
+Deleting an application cascades to its API keys — no credential outlives the thing it authenticates.
+
+---
+
+## API key endpoints
+
+Authenticated with a **session token** (these manage keys; they are not used *by* keys).
+
+### `POST /applications/:id/keys`
+
+```json
+{ "label": "CI deploy" }
+```
+
+`201` → `{ "apiKey": { "id", "keyId", "label", "lastUsedAt", "revokedAt", "createdAt" }, "token": "af_live_…", "message": "Store this token now. It cannot be retrieved again." }`
+
+**`token` appears in this response and nowhere else, ever.** Only its hash is stored. Production applications get `af_live_…`, everything else `af_test_…`, derived from the application's environment — not from the request.
+
+`400` missing label · `404` unknown application or not yours
+
+### `GET /applications/:id/keys`
+
+`200` → `{ "apiKeys": [ … ] }` — newest first, including revoked ones, since the point of a soft delete is that the record survives. No secret material is ever included.
+
+`404` unknown application or not yours
+
+### `DELETE /applications/:id/keys/:keyId`
+
+Revokes the key by stamping `revokedAt`; the row is kept for the audit trail.
+
+`200` → `{ "apiKey": { … } }`
+`404` unknown key, or the key belongs to a different application · `409` already revoked
+
+---
+
+## Authenticating with an API key
+
+### `GET /applications/current`
+
+Requires `Authorization: Bearer af_live_…`. Returns the application the key belongs to — the reference implementation of a key-protected route.
+
+`200` → `{ "application": { "id", "name", "environment", "clientId" } }`
+`401` missing, malformed, unknown, wrong-secret, or revoked key — all identical, with no hint which check failed
+
+---
+
 ## Testing
 
 ```bash
 pnpm test
 ```
 
-25 tests covering password hashing, token signing and verification, and the full HTTP lifecycle of every endpoint.
+77 tests covering hashing, token generation and verification, and the full HTTP lifecycle of every endpoint.
 
 Notable cases, because they are the ones that matter:
 
@@ -159,6 +268,11 @@ Notable cases, because they are the ones that matter:
 - A valid token for a deleted developer is rejected
 - Concurrent duplicate signups yield exactly one `201` and one `409`
 - A unique-constraint violation maps to `409`, while an unrelated database error still surfaces as `500`
+- `http://localhost.attacker.com` is rejected as a redirect URI, while real localhost is accepted
+- One developer cannot read, update, delete, or issue keys for another's application
+- A key belonging to one application cannot be revoked or listed through a sibling application the same developer owns
+- A revoked key stops authenticating immediately
+- A session token is rejected as an API key, and an API key is rejected as a session token
 
 Integration tests run against a real PostgreSQL database rather than mocks, so they exercise real constraints and real driver behaviour.
 
@@ -176,13 +290,17 @@ Integration tests run against a real PostgreSQL database rather than mocks, so t
 
 **Migrations are checked in.** Schema changes are reviewable in version control and replayable in CI.
 
+**Ownership is enforced in the query, not after it.** Every scoped read and write carries `developerId` in its `where` clause, so authorization cannot be skipped by forgetting a check at a call site. Writes use a single statement that encodes every invariant, rather than reading, deciding, then writing — a pattern that fails under concurrency.
+
+**Revocation is a soft delete.** Killing a key stamps `revokedAt` instead of removing the row, so the record of which credentials existed and when they were revoked survives for an incident review.
+
 ---
 
 ## Roadmap
 
 Building toward the full platform, in order:
 
-1. **Applications & API keys** — developers register apps and receive credentials
+1. ~~**Applications & API keys**~~ — done
 2. **End-user authentication** — accounts scoped per application, with email verification and password reset
 3. **OAuth2 authorization-code flow with PKCE** — plus RS256 access tokens and a JWKS endpoint
 4. **Hosted login page** — a themed universal login apps redirect to
@@ -200,3 +318,6 @@ Named rather than hidden, since this is a foundation rather than a finished prod
 - No rate limiting or account lockout on authentication endpoints yet
 - Session tokens are valid until expiry; there is no logout or token blocklist
 - No security headers or CORS policy — the API is not browser-facing yet
+- API keys carry no scopes or permissions: any valid key authenticates as its full application
+- API keys do not expire; they are valid until explicitly revoked
+- Application deletion is permanent and immediate — no archive, no undo
