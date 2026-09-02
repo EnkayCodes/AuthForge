@@ -4,8 +4,16 @@ import { developerRouter } from "./modules/developers/developer.routes.js";
 import { applicationRouter } from "./modules/applications/application.routes.js";
 import { apiKeyRouter } from "./modules/applications/api-key.routes.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { consoleMailer, type Mailer } from "./lib/mailer.js";
 
-export function createApp(): express.Express {
+export interface AppDependencies {
+  mailer: Mailer;
+}
+
+// Dependencies are injected here rather than imported by the services that use
+// them, so a test can substitute a recording fake and a deployment can swap the
+// transport without either one reaching into a module.
+export function createApp(deps: AppDependencies = { mailer: consoleMailer }): express.Express {
   const app = express();
   app.use(express.json());
   app.use(healthRouter);
