@@ -12,5 +12,9 @@ export default defineConfig({
     // trips to a remote database, and Argon2 hashing sits on top of each signup.
     // CI runs against a local Postgres container and finishes far inside this.
     testTimeout: 45000,
+    // beforeEach(resetDb) is a cascading delete against the same remote
+    // database and routinely exceeds Vitest's 10s hook default, which would
+    // otherwise fail tests for a reason that has nothing to do with them.
+    hookTimeout: 45000,
   },
 });
