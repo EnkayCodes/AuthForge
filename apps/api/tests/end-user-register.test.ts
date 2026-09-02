@@ -104,8 +104,8 @@ describe("POST /users/register", () => {
 describe("cross-application isolation", () => {
   // Two complete tenants: two signups, two applications, two keys and two
   // registrations, each an Argon2 hash plus a round trip to a remote database.
-  // It earns a larger budget than the shared default rather than being made
-  // less thorough.
+  // The slowest case in the suite, and the reason the shared timeout is what it
+  // is.
   it("allows the same email to register in two different applications", async () => {
     const { mailer } = createFakeMailer();
     const app = createApp({ mailer });
@@ -125,5 +125,5 @@ describe("cross-application isolation", () => {
     expect(first.status).toBe(201);
     expect(second.status).toBe(201);
     expect(first.body.endUser.id).not.toBe(second.body.endUser.id);
-  }, 120000);
+  });
 });

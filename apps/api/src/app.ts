@@ -6,6 +6,7 @@ import { apiKeyRouter } from "./modules/applications/api-key.routes.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { consoleMailer, type Mailer } from "./lib/mailer.js";
 import { createEndUserRouter } from "./modules/end-users/end-user.routes.js";
+import { createEmailVerificationRouter } from "./modules/end-users/email-verification.routes.js";
 
 export interface AppDependencies {
   mailer: Mailer;
@@ -22,6 +23,7 @@ export function createApp(deps: AppDependencies = { mailer: consoleMailer }): ex
   app.use(applicationRouter);
   app.use(apiKeyRouter);
   app.use(createEndUserRouter(deps.mailer));
+  app.use(createEmailVerificationRouter(deps.mailer));
   app.use(errorHandler);
   return app;
 }
