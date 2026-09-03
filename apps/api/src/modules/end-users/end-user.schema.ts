@@ -13,3 +13,11 @@ export const registerEndUserSchema = z.object({
   email: endUserEmail,
   password: z.string().min(8).max(200),
 });
+
+// Login does not apply the registration length policy: an existing password
+// must remain usable after the policy tightens, and rejecting on length here
+// would leak the rule to anyone probing the endpoint.
+export const loginEndUserSchema = z.object({
+  email: endUserEmail,
+  password: z.string().min(1).max(200),
+});

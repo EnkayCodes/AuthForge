@@ -8,6 +8,7 @@ export interface AuthenticatedApplication {
   name: string;
   environment: string;
   clientId: string;
+  requireVerifiedEmail: boolean;
 }
 
 declare global {
@@ -47,6 +48,7 @@ export async function requireApiKey(req: Request, _res: Response, next: NextFunc
       name: apiKey.application.name,
       environment: apiKey.application.environment,
       clientId: apiKey.application.clientId,
+      requireVerifiedEmail: apiKey.application.requireVerifiedEmail,
     };
     next();
   } catch (err) {

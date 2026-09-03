@@ -1,6 +1,5 @@
-import { randomBytes } from "node:crypto";
 import { prisma, Prisma } from "@authforge/db";
-import { hashPassword, verifyPassword } from "../../lib/password.js";
+import { hashPassword, verifyPassword, getDecoyPasswordHash } from "../../lib/password.js";
 import { HttpError } from "../../middleware/error-handler.js";
 
 export interface PublicDeveloper {
@@ -46,18 +45,6 @@ export async function createDeveloper(input: {
     throw err;
   }
   return toPublicDeveloper(developer);
-}
-
-// Verifying a password costs a few hundred milliseconds of Argon2 work. If the
-// unknown-email path skipped that work it would return measurably faster than a
-// wrong-password attempt, letting an attacker enumerate registered accounts by
-// timing alone. Hashing a throwaway secret gives us a decoy to verify against so
-// both paths do the same work. Computed once, lazily, to keep startup cheap.
-let decoyPasswordHash: Promise<string> | undefined;
-
-function getDecoyPasswordHash(): Promise<string> {
-  decoyPasswordHash ??= hashPassword(randomBytes(32).toString("hex"));
-  return decoyPasswordHash;
 }
 
 export async function authenticateDeveloper(input: {

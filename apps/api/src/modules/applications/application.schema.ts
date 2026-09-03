@@ -36,6 +36,7 @@ export const updateApplicationSchema = z
     redirectUris: z.array(redirectUri).max(20).optional(),
     accessTokenTtl: z.string().regex(/^\d+(\.\d+)?\s?(ms|s|m|h|d|w|y)?$/).optional(),
     refreshTokenTtl: z.string().regex(/^\d+(\.\d+)?\s?(ms|s|m|h|d|w|y)?$/).optional(),
+    requireVerifiedEmail: z.boolean().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: "at least one field must be provided",

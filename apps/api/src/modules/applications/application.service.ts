@@ -11,6 +11,7 @@ export interface PublicApplication {
   redirectUris: string[];
   accessTokenTtl: string;
   refreshTokenTtl: string;
+  requireVerifiedEmail: boolean;
   createdAt: Date;
 }
 
@@ -24,6 +25,7 @@ export function toPublicApplication(application: {
   redirectUris: string[];
   accessTokenTtl: string;
   refreshTokenTtl: string;
+  requireVerifiedEmail: boolean;
   createdAt: Date;
 }): PublicApplication {
   return {
@@ -34,6 +36,7 @@ export function toPublicApplication(application: {
     redirectUris: application.redirectUris,
     accessTokenTtl: application.accessTokenTtl,
     refreshTokenTtl: application.refreshTokenTtl,
+    requireVerifiedEmail: application.requireVerifiedEmail,
     createdAt: application.createdAt,
   };
 }
@@ -87,6 +90,7 @@ export async function updateApplication(
     redirectUris?: string[];
     accessTokenTtl?: string;
     refreshTokenTtl?: string;
+    requireVerifiedEmail?: boolean;
   },
 ): Promise<PublicApplication> {
   // A single atomic statement: the extra developerId filter enforces ownership
