@@ -1,6 +1,7 @@
 import { prisma, Prisma } from "@authforge/db";
 import { hashPassword, verifyPassword, getDecoyPasswordHash } from "../../lib/password.js";
 import { HttpError } from "../../middleware/error-handler.js";
+import { signAccessToken } from "../../lib/jwks.js";
 import type { Mailer } from "../../lib/mailer.js";
 import { issueVerificationToken } from "./email-verification.service.js";
 
@@ -55,10 +56,15 @@ export async function registerEndUser(
   return toPublicEndUser(endUser);
 }
 
+export interface AuthResult {
+  endUser: PublicEndUser;
+  accessToken: string;
+}
+
 export async function authenticateEndUser(
-  application: { id: string; requireVerifiedEmail: boolean },
+  application: { id: string; clientId: string; requireVerifiedEmail: boolean; accessTokenTtl: string },
   input: { email: string; password: string },
-): Promise<PublicEndUser> {
+): Promise<AuthResult> {
   // The tenant is part of the lookup key, so an end-user of one application is
   // simply not present when another application asks.
   const endUser = await prisma.endUser.findUnique({
@@ -81,5 +87,16 @@ export async function authenticateEndUser(
     throw new HttpError(403, "Email not verified", "email_not_verified");
   }
 
-  return toPublicEndUser(endUser);
+  const pub = toPublicEndUser(endUser);
+  const accessToken = signAccessToken(
+    {
+      sub: pub.id,
+      email: pub.email,
+      email_verified: pub.emailVerified,
+      aud: application.clientId,
+    },
+    application.accessTokenTtl,
+  );
+
+  return { endUser: pub, accessToken };
 }

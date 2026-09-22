@@ -31,7 +31,7 @@ describe("POST /users/login", () => {
     expect(res.body.endUser.emailVerified).toBe(true);
   });
 
-  it("issues no token — credential verification only", async () => {
+  it("returns an RS256 access token alongside the end-user", async () => {
     const { mailer, sent } = createFakeMailer();
     const app = createApp({ mailer });
     const { apiKey } = await setupApplication(app);
@@ -49,12 +49,10 @@ describe("POST /users/login", () => {
       .set("Authorization", `Bearer ${apiKey}`)
       .send({ email: "user@example.com", password: "password123" });
 
-    // Assert the success first: without it this passes against any error
-    // response, which has no token field either.
     expect(res.status).toBe(200);
     expect(res.body.endUser).toBeDefined();
-    expect(res.body.token).toBeUndefined();
-    expect(res.body.accessToken).toBeUndefined();
+    expect(typeof res.body.accessToken).toBe("string");
+    expect(res.body.accessToken.split(".")).toHaveLength(3);
   });
 
   // An attacker must not be able to tell a registered address from an
