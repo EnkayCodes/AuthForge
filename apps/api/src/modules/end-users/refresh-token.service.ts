@@ -5,6 +5,7 @@ import { signAccessToken } from "../../lib/jwks.js";
 import { HttpError } from "../../middleware/error-handler.js";
 import { TRANSACTION_OPTIONS } from "../../lib/transaction.js";
 import { toPublicEndUser } from "./end-user.service.js";
+import { createSession, touchSession } from "../sessions/session.service.js";
 
 export interface TokenPair {
   accessToken: string;
@@ -15,16 +16,21 @@ export async function issueRefreshToken(
   endUserId: string,
   refreshTokenTtlSeconds: number,
   familyId?: string,
+  meta?: { ip?: string; userAgent?: string },
 ): Promise<{ token: string }> {
+  const newFamilyId = familyId ?? randomUUID();
   const { token, tokenHash, expiresAt } = generateSingleUseToken(refreshTokenTtlSeconds);
   await prisma.refreshToken.create({
     data: {
       endUserId,
       tokenHash,
-      familyId: familyId ?? randomUUID(),
+      familyId: newFamilyId,
       expiresAt,
     },
   });
+  if (!familyId) {
+    await createSession(endUserId, newFamilyId, meta ?? {});
+  }
   return { token };
 }
 
@@ -92,6 +98,7 @@ export async function rotateRefreshToken(
       accessTokenTtl,
     );
 
+    await touchSession(existing.familyId);
     return { accessToken, refreshToken: newRawToken };
   }, TRANSACTION_OPTIONS);
 }

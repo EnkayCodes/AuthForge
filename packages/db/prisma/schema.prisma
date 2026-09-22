@@ -89,6 +89,7 @@ model EndUser {
   userRoles           UserRole[]
   mfaFactors          MfaFactor[]
   recoveryCodes       RecoveryCode[]
+  sessions            Session[]
 
   @@unique([applicationId, email])
   @@map("end_users")
@@ -253,4 +254,20 @@ model RecoveryCode {
 
   @@index([endUserId])
   @@map("recovery_codes")
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  endUserId    String
+  familyId     String    @unique
+  ipAddress    String?
+  userAgent    String?
+  lastActiveAt DateTime  @default(now())
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@map("sessions")
 }
