@@ -1,9 +1,12 @@
 import { Router } from "express";
 import { z } from "zod";
-import { prisma } from "@authforge/db";
-import { verifyPassword, getDecoyPasswordHash } from "../../lib/password.js";
+import { prisma, Prisma } from "@authforge/db";
+import { verifyPassword, getDecoyPasswordHash, hashPassword } from "../../lib/password.js";
 import { issueAuthorizationCode } from "./oauth.service.js";
+import { issueVerificationToken } from "../end-users/email-verification.service.js";
+import { requestPasswordReset, confirmPasswordReset } from "../end-users/password-reset.service.js";
 import { HttpError } from "../../middleware/error-handler.js";
+import type { Mailer } from "../../lib/mailer.js";
 
 const callbackSchema = z.object({
   client_id: z.string().min(1),
@@ -15,7 +18,24 @@ const callbackSchema = z.object({
   password: z.string().min(1),
 });
 
-export function createOAuthCallbackRouter(): Router {
+const signupSchema = z.object({
+  client_id: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+const forgotPasswordSchema = z.object({
+  client_id: z.string().min(1),
+  email: z.string().email(),
+});
+
+const resetPasswordSchema = z.object({
+  client_id: z.string().min(1),
+  token: z.string().min(1),
+  password: z.string().min(8),
+});
+
+export function createOAuthCallbackRouter(mailer: Mailer): Router {
   const router = Router();
 
   router.post("/oauth/callback", async (req, res, next) => {
@@ -65,6 +85,73 @@ export function createOAuthCallbackRouter(): Router {
       redirectUrl.searchParams.set("state", parsed.data.state);
 
       res.status(200).json({ redirect_uri: redirectUrl.toString() });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/oauth/signup", async (req, res, next) => {
+    try {
+      const parsed = signupSchema.safeParse(req.body);
+      if (!parsed.success) throw new HttpError(400, "Invalid request");
+
+      const application = await prisma.application.findUnique({
+        where: { clientId: parsed.data.client_id },
+      });
+      if (!application) throw new HttpError(400, "Unknown client_id");
+
+      let endUser;
+      try {
+        endUser = await prisma.endUser.create({
+          data: {
+            applicationId: application.id,
+            email: parsed.data.email,
+            passwordHash: await hashPassword(parsed.data.password),
+          },
+        });
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+          throw new HttpError(409, "Email already registered");
+        }
+        throw err;
+      }
+
+      await issueVerificationToken(endUser, application.name, mailer);
+      res.status(201).json({ message: "Account created. Check your email to verify." });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/oauth/forgot-password", async (req, res, next) => {
+    try {
+      const parsed = forgotPasswordSchema.safeParse(req.body);
+      if (!parsed.success) throw new HttpError(400, "Invalid request");
+
+      const application = await prisma.application.findUnique({
+        where: { clientId: parsed.data.client_id },
+      });
+      if (!application) throw new HttpError(400, "Unknown client_id");
+
+      await requestPasswordReset(application, parsed.data.email, mailer);
+      res.status(202).json({ accepted: true });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/oauth/reset-password", async (req, res, next) => {
+    try {
+      const parsed = resetPasswordSchema.safeParse(req.body);
+      if (!parsed.success) throw new HttpError(400, "Invalid request");
+
+      const application = await prisma.application.findUnique({
+        where: { clientId: parsed.data.client_id },
+      });
+      if (!application) throw new HttpError(400, "Unknown client_id");
+
+      await confirmPasswordReset(application.id, parsed.data.token, parsed.data.password);
+      res.status(200).json({ reset: true });
     } catch (err) {
       next(err);
     }

@@ -32,7 +32,7 @@ export function createApp(deps: AppDependencies = { mailer: consoleMailer }): ex
   app.use(createPasswordResetRouter(deps.mailer));
   app.use(createRefreshTokenRouter());
   app.use(createOAuthRouter());
-  app.use(createOAuthCallbackRouter());
+  app.use(createOAuthCallbackRouter(deps.mailer));
   app.use(jwksRouter);
   app.use(errorHandler);
   return app;
