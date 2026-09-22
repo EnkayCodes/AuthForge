@@ -10,6 +10,7 @@ import { issueRefreshToken } from "../end-users/refresh-token.service.js";
 import { getUserPermissions } from "../rbac/rbac.service.js";
 import { env } from "../../env.js";
 import { prisma } from "@authforge/db";
+import { recordAuditEvent, extractRequestMeta } from "../audit/audit.service.js";
 
 const challengeSchema = z.object({
   mfa_token: z.string().min(1),
@@ -40,8 +41,12 @@ export function createMfaChallengeRouter(): Router {
         throw new HttpError(401, "Invalid MFA token");
       }
 
+      const meta = extractRequestMeta(req);
       const ok = await validateMfaCode(payload.sub, parsed.data.code);
-      if (!ok) throw new HttpError(401, "Invalid MFA code");
+      if (!ok) {
+        await recordAuditEvent(app.id, "user.mfa_failed", { endUserId: payload.sub, ...meta });
+        throw new HttpError(401, "Invalid MFA code");
+      }
 
       const endUser = await prisma.endUser.findUnique({
         where: { id: payload.sub },
@@ -63,6 +68,7 @@ export function createMfaChallengeRouter(): Router {
       const ttlSeconds = parseRefreshTokenTtl(app.refreshTokenTtl);
       const { token: refreshToken } = await issueRefreshToken(endUser.id, ttlSeconds);
 
+      await recordAuditEvent(app.id, "user.mfa_verified", { endUserId: endUser.id, ...meta });
       res.json({
         endUser: {
           id: endUser.id,

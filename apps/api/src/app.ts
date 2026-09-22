@@ -16,6 +16,7 @@ import { createRbacRouter } from "./modules/rbac/rbac.routes.js";
 import { createMfaRouter } from "./modules/mfa/mfa.routes.js";
 import { createMfaChallengeRouter } from "./modules/mfa/mfa-challenge.routes.js";
 import { createSessionRouter } from "./modules/sessions/session.routes.js";
+import { createAuditRouter } from "./modules/audit/audit.routes.js";
 import { jwksRouter } from "./modules/jwks/jwks.routes.js";
 
 export interface AppDependencies {
@@ -43,6 +44,7 @@ export function createApp(deps: AppDependencies = { mailer: consoleMailer }): ex
   app.use(createMfaRouter());
   app.use(createMfaChallengeRouter());
   app.use(createSessionRouter());
+  app.use(createAuditRouter());
   app.use(jwksRouter);
   app.use(errorHandler);
   return app;

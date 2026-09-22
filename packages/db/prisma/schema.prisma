@@ -50,6 +50,7 @@ model Application {
   authorizationCodes AuthorizationCode[]
   roles              Role[]
   permissions        Permission[]
+  auditLogs          AuditLog[]
 
   @@index([developerId])
   @@map("applications")
@@ -270,4 +271,21 @@ model Session {
 
   @@index([endUserId])
   @@map("sessions")
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  applicationId String
+  endUserId     String?
+  action        String
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json     @default("{}")
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+  @@index([endUserId, createdAt])
+  @@map("audit_logs")
 }
