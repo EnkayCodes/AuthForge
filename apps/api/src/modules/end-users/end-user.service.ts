@@ -1,10 +1,13 @@
 import { prisma, Prisma } from "@authforge/db";
+import jwt from "jsonwebtoken";
 import { hashPassword, verifyPassword, getDecoyPasswordHash } from "../../lib/password.js";
 import { HttpError } from "../../middleware/error-handler.js";
 import { signAccessToken } from "../../lib/jwks.js";
 import { parseRefreshTokenTtl } from "../../lib/ttl.js";
 import { issueRefreshToken } from "./refresh-token.service.js";
 import { getUserPermissions } from "../rbac/rbac.service.js";
+import { hasMfaEnabled } from "../mfa/mfa.service.js";
+import { env } from "../../env.js";
 import type { Mailer } from "../../lib/mailer.js";
 import { issueVerificationToken } from "./email-verification.service.js";
 
@@ -63,12 +66,18 @@ export interface AuthResult {
   endUser: PublicEndUser;
   accessToken: string;
   refreshToken: string;
+  mfaRequired?: undefined;
+}
+
+export interface MfaChallengeResult {
+  mfaRequired: true;
+  mfaToken: string;
 }
 
 export async function authenticateEndUser(
   application: { id: string; clientId: string; requireVerifiedEmail: boolean; accessTokenTtl: string; refreshTokenTtl: string },
   input: { email: string; password: string },
-): Promise<AuthResult> {
+): Promise<AuthResult | MfaChallengeResult> {
   // The tenant is part of the lookup key, so an end-user of one application is
   // simply not present when another application asks.
   const endUser = await prisma.endUser.findUnique({
@@ -95,6 +104,16 @@ export async function authenticateEndUser(
   }
 
   const pub = toPublicEndUser(endUser);
+
+  if (await hasMfaEnabled(pub.id)) {
+    const mfaToken = jwt.sign(
+      { sub: pub.id, purpose: "mfa_challenge" },
+      env.SESSION_JWT_SECRET,
+      { expiresIn: "5m" },
+    );
+    return { mfaRequired: true, mfaToken };
+  }
+
   const permissions = await getUserPermissions(pub.id);
   const accessToken = signAccessToken(
     {

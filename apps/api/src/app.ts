@@ -13,6 +13,8 @@ import { createOAuthRouter } from "./modules/oauth/oauth.routes.js";
 import { createOAuthCallbackRouter } from "./modules/oauth/oauth-callback.routes.js";
 import { createGoogleOAuthRouter } from "./modules/oauth/google.routes.js";
 import { createRbacRouter } from "./modules/rbac/rbac.routes.js";
+import { createMfaRouter } from "./modules/mfa/mfa.routes.js";
+import { createMfaChallengeRouter } from "./modules/mfa/mfa-challenge.routes.js";
 import { jwksRouter } from "./modules/jwks/jwks.routes.js";
 
 export interface AppDependencies {
@@ -37,6 +39,8 @@ export function createApp(deps: AppDependencies = { mailer: consoleMailer }): ex
   app.use(createOAuthCallbackRouter(deps.mailer));
   app.use(createGoogleOAuthRouter());
   app.use(createRbacRouter());
+  app.use(createMfaRouter());
+  app.use(createMfaChallengeRouter());
   app.use(jwksRouter);
   app.use(errorHandler);
   return app;

@@ -87,6 +87,8 @@ model EndUser {
   authorizationCodes  AuthorizationCode[]
   oauthAccounts       OAuthAccount[]
   userRoles           UserRole[]
+  mfaFactors          MfaFactor[]
+  recoveryCodes       RecoveryCode[]
 
   @@unique([applicationId, email])
   @@map("end_users")
@@ -224,4 +226,31 @@ model UserRole {
 
   @@unique([endUserId, roleId])
   @@map("user_roles")
+}
+
+model MfaFactor {
+  id         String    @id @default(cuid())
+  endUserId  String
+  type       String    @default("totp")
+  secret     String
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@unique([endUserId, type])
+  @@map("mfa_factors")
+}
+
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  endUserId String
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@map("recovery_codes")
 }
