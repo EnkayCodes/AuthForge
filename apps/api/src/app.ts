@@ -8,6 +8,7 @@ import { consoleMailer, type Mailer } from "./lib/mailer.js";
 import { createEndUserRouter } from "./modules/end-users/end-user.routes.js";
 import { createEmailVerificationRouter } from "./modules/end-users/email-verification.routes.js";
 import { createPasswordResetRouter } from "./modules/end-users/password-reset.routes.js";
+import { createRefreshTokenRouter } from "./modules/end-users/refresh-token.routes.js";
 import { jwksRouter } from "./modules/jwks/jwks.routes.js";
 
 export interface AppDependencies {
@@ -27,6 +28,7 @@ export function createApp(deps: AppDependencies = { mailer: consoleMailer }): ex
   app.use(createEndUserRouter(deps.mailer));
   app.use(createEmailVerificationRouter(deps.mailer));
   app.use(createPasswordResetRouter(deps.mailer));
+  app.use(createRefreshTokenRouter());
   app.use(jwksRouter);
   app.use(errorHandler);
   return app;

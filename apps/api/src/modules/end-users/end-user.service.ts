@@ -2,6 +2,8 @@ import { prisma, Prisma } from "@authforge/db";
 import { hashPassword, verifyPassword, getDecoyPasswordHash } from "../../lib/password.js";
 import { HttpError } from "../../middleware/error-handler.js";
 import { signAccessToken } from "../../lib/jwks.js";
+import { parseRefreshTokenTtl } from "../../lib/ttl.js";
+import { issueRefreshToken } from "./refresh-token.service.js";
 import type { Mailer } from "../../lib/mailer.js";
 import { issueVerificationToken } from "./email-verification.service.js";
 
@@ -59,10 +61,11 @@ export async function registerEndUser(
 export interface AuthResult {
   endUser: PublicEndUser;
   accessToken: string;
+  refreshToken: string;
 }
 
 export async function authenticateEndUser(
-  application: { id: string; clientId: string; requireVerifiedEmail: boolean; accessTokenTtl: string },
+  application: { id: string; clientId: string; requireVerifiedEmail: boolean; accessTokenTtl: string; refreshTokenTtl: string },
   input: { email: string; password: string },
 ): Promise<AuthResult> {
   // The tenant is part of the lookup key, so an end-user of one application is
@@ -98,5 +101,8 @@ export async function authenticateEndUser(
     application.accessTokenTtl,
   );
 
-  return { endUser: pub, accessToken };
+  const ttlSeconds = parseRefreshTokenTtl(application.refreshTokenTtl);
+  const { token: refreshToken } = await issueRefreshToken(pub.id, ttlSeconds);
+
+  return { endUser: pub, accessToken, refreshToken };
 }

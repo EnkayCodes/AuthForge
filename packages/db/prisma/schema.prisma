@@ -80,6 +80,7 @@ model EndUser {
   application         Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   verificationTokens  VerificationToken[]
   passwordResetTokens PasswordResetToken[]
+  refreshTokens       RefreshToken[]
 
   // The composite unique is what makes an end-user belong to exactly one
   // application: the same address can exist independently in two tenants.
@@ -114,4 +115,21 @@ model PasswordResetToken {
 
   @@index([endUserId])
   @@map("password_reset_tokens")
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  endUserId String
+  tokenHash String    @unique
+  familyId  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@index([familyId])
+  @@map("refresh_tokens")
 }
