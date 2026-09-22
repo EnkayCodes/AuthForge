@@ -7,6 +7,7 @@ import { issueVerificationToken } from "../end-users/email-verification.service.
 import { requestPasswordReset, confirmPasswordReset } from "../end-users/password-reset.service.js";
 import { HttpError } from "../../middleware/error-handler.js";
 import type { Mailer } from "../../lib/mailer.js";
+import { authRateLimit, registrationRateLimit, passwordResetRateLimit } from "../../middleware/rate-limit.js";
 
 const callbackSchema = z.object({
   client_id: z.string().min(1),
@@ -38,7 +39,7 @@ const resetPasswordSchema = z.object({
 export function createOAuthCallbackRouter(mailer: Mailer): Router {
   const router = Router();
 
-  router.post("/oauth/callback", async (req, res, next) => {
+  router.post("/oauth/callback", authRateLimit, async (req, res, next) => {
     try {
       const parsed = callbackSchema.safeParse(req.body);
       if (!parsed.success) throw new HttpError(400, "Invalid request");
@@ -95,7 +96,7 @@ export function createOAuthCallbackRouter(mailer: Mailer): Router {
     }
   });
 
-  router.post("/oauth/signup", async (req, res, next) => {
+  router.post("/oauth/signup", registrationRateLimit, async (req, res, next) => {
     try {
       const parsed = signupSchema.safeParse(req.body);
       if (!parsed.success) throw new HttpError(400, "Invalid request");
@@ -128,7 +129,7 @@ export function createOAuthCallbackRouter(mailer: Mailer): Router {
     }
   });
 
-  router.post("/oauth/forgot-password", async (req, res, next) => {
+  router.post("/oauth/forgot-password", passwordResetRateLimit, async (req, res, next) => {
     try {
       const parsed = forgotPasswordSchema.safeParse(req.body);
       if (!parsed.success) throw new HttpError(400, "Invalid request");

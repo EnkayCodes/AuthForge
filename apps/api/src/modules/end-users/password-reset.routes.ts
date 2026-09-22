@@ -7,11 +7,12 @@ import {
   requestPasswordResetSchema,
 } from "./password-reset.schema.js";
 import { confirmPasswordReset, requestPasswordReset } from "./password-reset.service.js";
+import { passwordResetRateLimit } from "../../middleware/rate-limit.js";
 
 export function createPasswordResetRouter(mailer: Mailer): Router {
   const router = Router();
 
-  router.post("/users/password-reset", requireApiKey, async (req, res, next) => {
+  router.post("/users/password-reset", passwordResetRateLimit, requireApiKey, async (req, res, next) => {
     try {
       const application = req.application;
       if (!application) throw new HttpError(401, "Unauthorized");

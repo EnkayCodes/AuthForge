@@ -5,6 +5,7 @@ import type { Mailer } from "../../lib/mailer.js";
 import { loginEndUserSchema, registerEndUserSchema } from "./end-user.schema.js";
 import { authenticateEndUser, registerEndUser } from "./end-user.service.js";
 import { recordAuditEvent, extractRequestMeta } from "../audit/audit.service.js";
+import { authRateLimit, registrationRateLimit } from "../../middleware/rate-limit.js";
 
 // A factory rather than a module-level singleton, because the router needs the
 // injected mailer. The application always comes from the authenticated API key,
@@ -12,7 +13,7 @@ import { recordAuditEvent, extractRequestMeta } from "../audit/audit.service.js"
 export function createEndUserRouter(mailer: Mailer): Router {
   const router = Router();
 
-  router.post("/users/register", requireApiKey, async (req, res, next) => {
+  router.post("/users/register", registrationRateLimit, requireApiKey, async (req, res, next) => {
     try {
       const application = req.application;
       if (!application) throw new HttpError(401, "Unauthorized");
@@ -27,7 +28,7 @@ export function createEndUserRouter(mailer: Mailer): Router {
     }
   });
 
-  router.post("/users/login", requireApiKey, async (req, res, next) => {
+  router.post("/users/login", authRateLimit, requireApiKey, async (req, res, next) => {
     try {
       const application = req.application;
       if (!application) throw new HttpError(401, "Unauthorized");
