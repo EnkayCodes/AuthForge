@@ -65,6 +65,11 @@ export function createOAuthCallbackRouter(mailer: Mailer): Router {
         throw new HttpError(401, "Invalid credentials");
       }
 
+      if (!endUser.passwordHash) {
+        await verifyPassword(await getDecoyPasswordHash(), parsed.data.password);
+        throw new HttpError(401, "Invalid credentials");
+      }
+
       const ok = await verifyPassword(endUser.passwordHash, parsed.data.password);
       if (!ok) throw new HttpError(401, "Invalid credentials");
 

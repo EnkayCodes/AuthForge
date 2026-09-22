@@ -75,8 +75,11 @@ export async function authenticateEndUser(
   });
 
   if (!endUser) {
-    // Same Argon2 cost as the found path, so the two are not separable by
-    // response time.
+    await verifyPassword(await getDecoyPasswordHash(), input.password);
+    throw new HttpError(401, "Invalid credentials");
+  }
+
+  if (!endUser.passwordHash) {
     await verifyPassword(await getDecoyPasswordHash(), input.password);
     throw new HttpError(401, "Invalid credentials");
   }

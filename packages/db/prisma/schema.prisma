@@ -73,7 +73,7 @@ model EndUser {
   id              String    @id @default(cuid())
   applicationId   String
   email           String
-  passwordHash    String
+  passwordHash    String?
   emailVerifiedAt DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -83,12 +83,24 @@ model EndUser {
   passwordResetTokens PasswordResetToken[]
   refreshTokens       RefreshToken[]
   authorizationCodes  AuthorizationCode[]
+  oauthAccounts       OAuthAccount[]
 
-  // The composite unique is what makes an end-user belong to exactly one
-  // application: the same address can exist independently in two tenants.
-  // It also serves as the applicationId index, so no separate @@index.
   @@unique([applicationId, email])
   @@map("end_users")
+}
+
+model OAuthAccount {
+  id             String @id @default(cuid())
+  endUserId      String
+  provider       String
+  providerUserId String
+  createdAt      DateTime @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId, endUserId])
+  @@unique([endUserId, provider])
+  @@map("oauth_accounts")
 }
 
 model VerificationToken {

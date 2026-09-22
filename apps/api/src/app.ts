@@ -11,6 +11,7 @@ import { createPasswordResetRouter } from "./modules/end-users/password-reset.ro
 import { createRefreshTokenRouter } from "./modules/end-users/refresh-token.routes.js";
 import { createOAuthRouter } from "./modules/oauth/oauth.routes.js";
 import { createOAuthCallbackRouter } from "./modules/oauth/oauth-callback.routes.js";
+import { createGoogleOAuthRouter } from "./modules/oauth/google.routes.js";
 import { jwksRouter } from "./modules/jwks/jwks.routes.js";
 
 export interface AppDependencies {
@@ -33,6 +34,7 @@ export function createApp(deps: AppDependencies = { mailer: consoleMailer }): ex
   app.use(createRefreshTokenRouter());
   app.use(createOAuthRouter());
   app.use(createOAuthCallbackRouter(deps.mailer));
+  app.use(createGoogleOAuthRouter());
   app.use(jwksRouter);
   app.use(errorHandler);
   return app;
