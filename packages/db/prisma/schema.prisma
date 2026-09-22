@@ -44,9 +44,10 @@ model Application {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  apiKeys   ApiKey[]
-  endUsers  EndUser[]
+  developer          Developer            @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  apiKeys            ApiKey[]
+  endUsers           EndUser[]
+  authorizationCodes AuthorizationCode[]
 
   @@index([developerId])
   @@map("applications")
@@ -81,6 +82,7 @@ model EndUser {
   verificationTokens  VerificationToken[]
   passwordResetTokens PasswordResetToken[]
   refreshTokens       RefreshToken[]
+  authorizationCodes  AuthorizationCode[]
 
   // The composite unique is what makes an end-user belong to exactly one
   // application: the same address can exist independently in two tenants.
@@ -132,4 +134,23 @@ model RefreshToken {
   @@index([endUserId])
   @@index([familyId])
   @@map("refresh_tokens")
+}
+
+model AuthorizationCode {
+  id            String    @id @default(cuid())
+  applicationId String
+  endUserId     String
+  codeHash      String    @unique
+  redirectUri   String
+  codeChallenge String
+  scope         String    @default("")
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  endUser     EndUser     @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("authorization_codes")
 }

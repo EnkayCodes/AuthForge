@@ -12,6 +12,7 @@ const schema = z.object({
   NODE_ENV: z.string().default("development"),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().optional(),
+  LOGIN_BASE_URL: z.string().url().default("http://localhost:3000"),
   // HS256 signing key. RFC 2104 recommends key material at least as long as
   // the hash output (32 bytes for SHA-256).
   SESSION_JWT_SECRET: z.string().min(32),
