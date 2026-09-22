@@ -4,6 +4,7 @@ import { HttpError } from "../../middleware/error-handler.js";
 import { signAccessToken } from "../../lib/jwks.js";
 import { parseRefreshTokenTtl } from "../../lib/ttl.js";
 import { issueRefreshToken } from "./refresh-token.service.js";
+import { getUserPermissions } from "../rbac/rbac.service.js";
 import type { Mailer } from "../../lib/mailer.js";
 import { issueVerificationToken } from "./email-verification.service.js";
 
@@ -94,12 +95,14 @@ export async function authenticateEndUser(
   }
 
   const pub = toPublicEndUser(endUser);
+  const permissions = await getUserPermissions(pub.id);
   const accessToken = signAccessToken(
     {
       sub: pub.id,
       email: pub.email,
       email_verified: pub.emailVerified,
       aud: application.clientId,
+      permissions,
     },
     application.accessTokenTtl,
   );

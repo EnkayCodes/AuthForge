@@ -48,6 +48,8 @@ model Application {
   apiKeys            ApiKey[]
   endUsers           EndUser[]
   authorizationCodes AuthorizationCode[]
+  roles              Role[]
+  permissions        Permission[]
 
   @@index([developerId])
   @@map("applications")
@@ -84,6 +86,7 @@ model EndUser {
   refreshTokens       RefreshToken[]
   authorizationCodes  AuthorizationCode[]
   oauthAccounts       OAuthAccount[]
+  userRoles           UserRole[]
 
   @@unique([applicationId, email])
   @@map("end_users")
@@ -165,4 +168,60 @@ model AuthorizationCode {
 
   @@index([applicationId])
   @@map("authorization_codes")
+}
+
+model Role {
+  id            String   @id @default(cuid())
+  applicationId String
+  name          String
+  description   String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application     Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@unique([applicationId, name])
+  @@map("roles")
+}
+
+model Permission {
+  id            String   @id @default(cuid())
+  applicationId String
+  key           String
+  description   String   @default("")
+  createdAt     DateTime @default(now())
+
+  application     Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+
+  @@unique([applicationId, key])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  endUserId String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([endUserId, roleId])
+  @@map("user_roles")
 }

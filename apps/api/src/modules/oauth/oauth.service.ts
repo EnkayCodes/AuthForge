@@ -4,6 +4,7 @@ import { verifyCodeChallenge } from "../../lib/pkce.js";
 import { signAccessToken } from "../../lib/jwks.js";
 import { issueRefreshToken } from "../end-users/refresh-token.service.js";
 import { toPublicEndUser } from "../end-users/end-user.service.js";
+import { getUserPermissions } from "../rbac/rbac.service.js";
 import { parseRefreshTokenTtl } from "../../lib/ttl.js";
 import { HttpError } from "../../middleware/error-handler.js";
 import { TRANSACTION_OPTIONS } from "../../lib/transaction.js";
@@ -97,12 +98,14 @@ export async function exchangeAuthorizationCode(
     });
 
     const pub = toPublicEndUser(authCode.endUser);
+    const permissions = await getUserPermissions(pub.id);
     const accessToken = signAccessToken(
       {
         sub: pub.id,
         email: pub.email,
         email_verified: pub.emailVerified,
         aud: authCode.application.clientId,
+        permissions,
       },
       authCode.application.accessTokenTtl,
     );

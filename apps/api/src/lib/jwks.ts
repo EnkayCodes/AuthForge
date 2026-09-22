@@ -80,6 +80,7 @@ export interface AccessTokenClaims {
   email: string;
   email_verified: boolean;
   aud: string;
+  permissions?: string[];
 }
 
 export function signAccessToken(claims: AccessTokenClaims, expiresIn: string): string {
@@ -90,6 +91,7 @@ export function signAccessToken(claims: AccessTokenClaims, expiresIn: string): s
       email: claims.email,
       email_verified: claims.email_verified,
       aud: claims.aud,
+      permissions: claims.permissions ?? [],
     },
     privateKey,
     { algorithm: "RS256", keyid: kid, expiresIn: expiresIn as jwt.SignOptions["expiresIn"] },
