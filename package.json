@@ -8,6 +8,7 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "dev:api": "pnpm --filter @authforge/api dev",
+    "dev:web": "pnpm --filter @authforge/web dev",
     "db:generate": "pnpm --filter @authforge/db generate",
     "db:migrate": "pnpm --filter @authforge/db migrate"
   },

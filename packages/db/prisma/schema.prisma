@@ -37,11 +37,20 @@ model Application {
   redirectUris    String[]    @default([])
   accessTokenTtl  String      @default("15m")
   refreshTokenTtl String      @default("30d")
+  // Whether an end-user must verify their email before they can authenticate.
+  // A per-tenant policy rather than a platform-wide rule, because real
+  // deployments differ on how much friction they want at first sign-in.
+  requireVerifiedEmail Boolean @default(true)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  developer Developer @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  apiKeys   ApiKey[]
+  developer          Developer            @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  apiKeys            ApiKey[]
+  endUsers           EndUser[]
+  authorizationCodes AuthorizationCode[]
+  roles              Role[]
+  permissions        Permission[]
+  auditLogs          AuditLog[]
 
   @@index([developerId])
   @@map("applications")
@@ -61,4 +70,222 @@ model ApiKey {
 
   @@index([applicationId])
   @@map("api_keys")
+}
+
+model EndUser {
+  id              String    @id @default(cuid())
+  applicationId   String
+  email           String
+  passwordHash    String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  application         Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  verificationTokens  VerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+  refreshTokens       RefreshToken[]
+  authorizationCodes  AuthorizationCode[]
+  oauthAccounts       OAuthAccount[]
+  userRoles           UserRole[]
+  mfaFactors          MfaFactor[]
+  recoveryCodes       RecoveryCode[]
+  sessions            Session[]
+
+  @@unique([applicationId, email])
+  @@map("end_users")
+}
+
+model OAuthAccount {
+  id             String @id @default(cuid())
+  endUserId      String
+  provider       String
+  providerUserId String
+  createdAt      DateTime @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId, endUserId])
+  @@unique([endUserId, provider])
+  @@map("oauth_accounts")
+}
+
+model VerificationToken {
+  id        String    @id @default(cuid())
+  endUserId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  endUserId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@map("password_reset_tokens")
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  endUserId String
+  tokenHash String    @unique
+  familyId  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+model AuthorizationCode {
+  id            String    @id @default(cuid())
+  applicationId String
+  endUserId     String
+  codeHash      String    @unique
+  redirectUri   String
+  codeChallenge String
+  scope         String    @default("")
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  endUser     EndUser     @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("authorization_codes")
+}
+
+model Role {
+  id            String   @id @default(cuid())
+  applicationId String
+  name          String
+  description   String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application     Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@unique([applicationId, name])
+  @@map("roles")
+}
+
+model Permission {
+  id            String   @id @default(cuid())
+  applicationId String
+  key           String
+  description   String   @default("")
+  createdAt     DateTime @default(now())
+
+  application     Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+
+  @@unique([applicationId, key])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  endUserId String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([endUserId, roleId])
+  @@map("user_roles")
+}
+
+model MfaFactor {
+  id         String    @id @default(cuid())
+  endUserId  String
+  type       String    @default("totp")
+  secret     String
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@unique([endUserId, type])
+  @@map("mfa_factors")
+}
+
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  endUserId String
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@map("recovery_codes")
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  endUserId    String
+  familyId     String    @unique
+  ipAddress    String?
+  userAgent    String?
+  lastActiveAt DateTime  @default(now())
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  endUser EndUser @relation(fields: [endUserId], references: [id], onDelete: Cascade)
+
+  @@index([endUserId])
+  @@map("sessions")
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  applicationId String
+  endUserId     String?
+  action        String
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json     @default("{}")
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+  @@index([endUserId, createdAt])
+  @@map("audit_logs")
 }

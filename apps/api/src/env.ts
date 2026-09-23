@@ -11,6 +11,8 @@ const schema = z.object({
   PORT: z.coerce.number().default(4000),
   NODE_ENV: z.string().default("development"),
   DATABASE_URL: z.string().min(1),
+  REDIS_URL: z.string().optional(),
+  LOGIN_BASE_URL: z.string().url().default("http://localhost:3000"),
   // HS256 signing key. RFC 2104 recommends key material at least as long as
   // the hash output (32 bytes for SHA-256).
   SESSION_JWT_SECRET: z.string().min(32),
@@ -21,6 +23,13 @@ const schema = z.object({
     .string()
     .regex(/^\d+(\.\d+)?\s?(ms|s|m|h|d|w|y)?$/, "must be a duration like 30s, 15m, 24h or 7d")
     .default("7d"),
+  // Seconds, not a duration string. Unlike the JWT TTLs above — which
+  // jsonwebtoken parses itself — these are only ever used for Date arithmetic,
+  // so a string form would mean carrying a duration parser for no benefit.
+  VERIFICATION_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(86400),
+  PASSWORD_RESET_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
 
 export const env = schema.parse(process.env);
