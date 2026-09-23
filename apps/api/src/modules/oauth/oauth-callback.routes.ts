@@ -7,7 +7,7 @@ import { issueVerificationToken } from "../end-users/email-verification.service.
 import { requestPasswordReset, confirmPasswordReset } from "../end-users/password-reset.service.js";
 import { HttpError } from "../../middleware/error-handler.js";
 import type { Mailer } from "../../lib/mailer.js";
-import { authRateLimit, registrationRateLimit, passwordResetRateLimit } from "../../middleware/rate-limit.js";
+import { createAuthRateLimit, createRegistrationRateLimit, createPasswordResetRateLimit } from "../../middleware/rate-limit.js";
 
 const callbackSchema = z.object({
   client_id: z.string().min(1),
@@ -38,6 +38,9 @@ const resetPasswordSchema = z.object({
 
 export function createOAuthCallbackRouter(mailer: Mailer): Router {
   const router = Router();
+  const authRateLimit = createAuthRateLimit();
+  const registrationRateLimit = createRegistrationRateLimit();
+  const passwordResetRateLimit = createPasswordResetRateLimit();
 
   router.post("/oauth/callback", authRateLimit, async (req, res, next) => {
     try {

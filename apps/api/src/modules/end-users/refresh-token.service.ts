@@ -44,32 +44,32 @@ export async function rotateRefreshToken(
   const tokenHash = hashSingleUseToken(token);
   const now = new Date();
 
-  return prisma.$transaction(async (tx) => {
-    const existing = await tx.refreshToken.findUnique({
-      where: { tokenHash },
-      include: { endUser: true },
+  const existing = await prisma.refreshToken.findUnique({
+    where: { tokenHash },
+    include: { endUser: true },
+  });
+
+  if (!existing) throw new HttpError(401, "Invalid refresh token");
+  if (existing.endUser.applicationId !== applicationId) {
+    throw new HttpError(401, "Invalid refresh token");
+  }
+
+  // Reuse detection: a token that was already consumed is being replayed.
+  // Revoke the entire family outside the transaction so the revocation
+  // persists even though we throw afterwards.
+  if (existing.usedAt || existing.revokedAt) {
+    await prisma.refreshToken.updateMany({
+      where: { familyId: existing.familyId, revokedAt: null },
+      data: { revokedAt: now },
     });
+    throw new HttpError(401, "Token reuse detected");
+  }
 
-    if (!existing) throw new HttpError(401, "Invalid refresh token");
-    if (existing.endUser.applicationId !== applicationId) {
-      throw new HttpError(401, "Invalid refresh token");
-    }
+  if (existing.expiresAt <= now) {
+    throw new HttpError(401, "Refresh token expired");
+  }
 
-    // Reuse detection: a token that was already consumed is being replayed.
-    // Revoke the entire family — the legitimate holder and the attacker both
-    // lose access, which is the only safe response.
-    if (existing.usedAt || existing.revokedAt) {
-      await tx.refreshToken.updateMany({
-        where: { familyId: existing.familyId, revokedAt: null },
-        data: { revokedAt: now },
-      });
-      throw new HttpError(401, "Token reuse detected");
-    }
-
-    if (existing.expiresAt <= now) {
-      throw new HttpError(401, "Refresh token expired");
-    }
-
+  return prisma.$transaction(async (tx) => {
     // Mark the current token as used.
     await tx.refreshToken.update({
       where: { id: existing.id },

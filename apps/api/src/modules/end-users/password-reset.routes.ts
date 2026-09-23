@@ -7,10 +7,11 @@ import {
   requestPasswordResetSchema,
 } from "./password-reset.schema.js";
 import { confirmPasswordReset, requestPasswordReset } from "./password-reset.service.js";
-import { passwordResetRateLimit } from "../../middleware/rate-limit.js";
+import { createPasswordResetRateLimit } from "../../middleware/rate-limit.js";
 
 export function createPasswordResetRouter(mailer: Mailer): Router {
   const router = Router();
+  const passwordResetRateLimit = createPasswordResetRateLimit();
 
   router.post("/users/password-reset", passwordResetRateLimit, requireApiKey, async (req, res, next) => {
     try {

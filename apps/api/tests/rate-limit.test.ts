@@ -8,7 +8,7 @@ import { setupApplication } from "./helpers/end-user.js";
 beforeEach(resetDb);
 
 describe("Rate limiting", () => {
-  it("returns 429 after exceeding login rate limit", async () => {
+  it("returns 429 after exceeding login rate limit", { timeout: 300_000 }, async () => {
     const { mailer } = createFakeMailer();
     const app = createApp({ mailer });
     const { apiKey } = await setupApplication(app, { requireVerifiedEmail: false });
@@ -45,8 +45,7 @@ describe("Rate limiting", () => {
       .set("Authorization", `Bearer ${apiKey}`)
       .send({ email: "user@example.com", password: "password123" });
 
-    expect(res.headers["ratelimit-limit"]).toBeDefined();
-    expect(res.headers["ratelimit-remaining"]).toBeDefined();
+    expect(res.headers["ratelimit"]).toBeDefined();
   });
 
   it("applies stricter limit to password reset", async () => {

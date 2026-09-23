@@ -5,13 +5,15 @@ import type { Mailer } from "../../lib/mailer.js";
 import { loginEndUserSchema, registerEndUserSchema } from "./end-user.schema.js";
 import { authenticateEndUser, registerEndUser } from "./end-user.service.js";
 import { recordAuditEvent, extractRequestMeta } from "../audit/audit.service.js";
-import { authRateLimit, registrationRateLimit } from "../../middleware/rate-limit.js";
+import { createAuthRateLimit, createRegistrationRateLimit } from "../../middleware/rate-limit.js";
 
 // A factory rather than a module-level singleton, because the router needs the
 // injected mailer. The application always comes from the authenticated API key,
 // never from the request body, so a caller cannot address another tenant.
 export function createEndUserRouter(mailer: Mailer): Router {
   const router = Router();
+  const registrationRateLimit = createRegistrationRateLimit();
+  const authRateLimit = createAuthRateLimit();
 
   router.post("/users/register", registrationRateLimit, requireApiKey, async (req, res, next) => {
     try {

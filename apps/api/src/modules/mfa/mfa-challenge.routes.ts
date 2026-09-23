@@ -11,7 +11,7 @@ import { getUserPermissions } from "../rbac/rbac.service.js";
 import { env } from "../../env.js";
 import { prisma } from "@authforge/db";
 import { recordAuditEvent, extractRequestMeta } from "../audit/audit.service.js";
-import { authRateLimit } from "../../middleware/rate-limit.js";
+import { createAuthRateLimit } from "../../middleware/rate-limit.js";
 
 const challengeSchema = z.object({
   mfa_token: z.string().min(1),
@@ -20,6 +20,7 @@ const challengeSchema = z.object({
 
 export function createMfaChallengeRouter(): Router {
   const router = Router();
+  const authRateLimit = createAuthRateLimit();
 
   router.post("/users/mfa/challenge", authRateLimit, requireApiKey, async (req, res, next) => {
     try {
