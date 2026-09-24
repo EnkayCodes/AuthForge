@@ -1,12 +1,5 @@
-import { config } from "dotenv";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import express from "express";
 import { AuthForge } from "@authforge/sdk";
-
-// Load environment variables from .env file
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-config({ path: path.resolve(__dirname, "../.env"), quiet: true });
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
