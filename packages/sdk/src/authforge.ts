@@ -154,7 +154,7 @@ export class AuthForge {
           return;
         }
 
-        let session =
+        const session =
           await this.session.decrypt<SessionData>(sessionCookie);
         if (!session) {
           res.clearCookie(this.cookieName, { path: "/" });
