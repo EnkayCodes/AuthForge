@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, type FormEvent } from "react";
 import { apiFetch } from "../../../lib/api";
@@ -95,7 +95,7 @@ export function CreateApplicationForm({ onCreated, onCancel }: CreateApplication
               disabled={loading}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Creatingâ€¦" : "Create"}
+              {loading ? "Creating…" : "Create"}
             </button>
           </div>
         </form>

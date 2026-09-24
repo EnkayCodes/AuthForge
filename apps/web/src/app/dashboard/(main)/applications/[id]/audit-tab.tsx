@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Fragment, useEffect, useState, useCallback } from "react";
 import { apiFetch } from "../../../../../lib/api";

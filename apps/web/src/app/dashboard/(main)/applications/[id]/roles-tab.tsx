@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback, type FormEvent } from "react";
 import { apiFetch } from "../../../../../lib/api";

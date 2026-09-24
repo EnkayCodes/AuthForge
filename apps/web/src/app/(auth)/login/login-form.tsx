@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, type FormEvent } from "react";
 
@@ -109,7 +109,7 @@ export function LoginForm({
         disabled={loading}
         className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? "Signing inâ€¦" : "Sign in"}
+        {loading ? "Signing in…" : "Sign in"}
       </button>
 
       <div className="relative my-1">
