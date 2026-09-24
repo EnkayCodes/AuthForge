@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, type FormEvent } from "react";
 import { apiFetch } from "../../../../../lib/api";
@@ -95,7 +95,7 @@ export function RolesTab({ appId }: { appId: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-10">
-        <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
       </div>
     );
   }
@@ -110,19 +110,19 @@ export function RolesTab({ appId }: { appId: string }) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Role name (e.g. admin)"
             required
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description (optional)"
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           <button
             type="submit"
             disabled={creating}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
             {creating ? "Adding…" : "Add Role"}
           </button>
@@ -153,7 +153,7 @@ export function RolesTab({ appId }: { appId: string }) {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setExpandedRole(expanded ? null : role.id)}
-                      className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                      className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
                     >
                       {expanded ? "Collapse" : "Permissions"}
                     </button>
@@ -173,12 +173,12 @@ export function RolesTab({ appId }: { appId: string }) {
                         {role.permissions.map((p) => (
                           <span
                             key={p.id}
-                            className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                            className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700"
                           >
                             {p.key}
                             <button
                               onClick={() => detachPermission(role.id, p.id)}
-                              className="ml-1 text-blue-400 hover:text-red-500"
+                              className="ml-1 text-indigo-400 hover:text-red-500"
                             >
                               &times;
                             </button>

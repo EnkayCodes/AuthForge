@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 import { apiFetch } from "../../../../../lib/api";
@@ -103,7 +103,7 @@ export function SettingsTab({ app, onUpdated, onDeleted }: SettingsTabProps) {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
@@ -131,7 +131,7 @@ export function SettingsTab({ app, onUpdated, onDeleted }: SettingsTabProps) {
               value={newUri}
               onChange={(e) => setNewUri(e.target.value)}
               placeholder="https://example.com/callback"
-              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <button
               type="button"
@@ -154,7 +154,7 @@ export function SettingsTab({ app, onUpdated, onDeleted }: SettingsTabProps) {
               value={accessTokenTtl}
               onChange={(e) => setAccessTokenTtl(e.target.value)}
               placeholder="15m"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <p className="mt-1 text-xs text-gray-400">e.g. 15m, 1h, 24h</p>
           </div>
@@ -168,7 +168,7 @@ export function SettingsTab({ app, onUpdated, onDeleted }: SettingsTabProps) {
               value={refreshTokenTtl}
               onChange={(e) => setRefreshTokenTtl(e.target.value)}
               placeholder="30d"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <p className="mt-1 text-xs text-gray-400">e.g. 7d, 30d, 90d</p>
           </div>
@@ -180,7 +180,7 @@ export function SettingsTab({ app, onUpdated, onDeleted }: SettingsTabProps) {
             type="checkbox"
             checked={requireVerifiedEmail}
             onChange={(e) => setRequireVerifiedEmail(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
           />
           <label htmlFor="require-verified" className="text-sm font-medium">
             Require verified email before login
@@ -190,7 +190,7 @@ export function SettingsTab({ app, onUpdated, onDeleted }: SettingsTabProps) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save Changes"}
         </button>

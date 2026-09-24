@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 import { apiFetch } from "../../../lib/api";
@@ -61,7 +61,7 @@ export function CreateApplicationForm({ onCreated, onCancel }: CreateApplication
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               placeholder="My App"
             />
           </div>
@@ -74,7 +74,7 @@ export function CreateApplicationForm({ onCreated, onCancel }: CreateApplication
               id="app-env"
               value={environment}
               onChange={(e) => setEnvironment(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value="development">Development</option>
               <option value="staging">Staging</option>
@@ -93,9 +93,9 @@ export function CreateApplicationForm({ onCreated, onCancel }: CreateApplication
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Creating…" : "Create"}
+              {loading ? "Creatingâ€¦" : "Create"}
             </button>
           </div>
         </form>
@@ -103,3 +103,4 @@ export function CreateApplicationForm({ onCreated, onCancel }: CreateApplication
     </div>
   );
 }
+

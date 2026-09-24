@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Fragment, useEffect, useState, useCallback } from "react";
 import { apiFetch } from "../../../../../lib/api";
@@ -53,7 +53,7 @@ export function AuditTab({ appId }: { appId: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-10">
-        <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
       </div>
     );
   }
@@ -66,7 +66,7 @@ export function AuditTab({ appId }: { appId: string }) {
           value={userFilter}
           onChange={(e) => setUserFilter(e.target.value)}
           placeholder="Filter by user ID…"
-          className="w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 

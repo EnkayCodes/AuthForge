@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, type FormEvent } from "react";
 import { apiFetch } from "../../../../../lib/api";
@@ -68,7 +68,7 @@ export function ApiKeysTab({ appId }: { appId: string }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-10">
-        <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
       </div>
     );
   }
@@ -107,12 +107,12 @@ export function ApiKeysTab({ appId }: { appId: string }) {
           onChange={(e) => setLabel(e.target.value)}
           placeholder="Key label (e.g. Production)"
           required
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
         <button
           type="submit"
           disabled={creating}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
           {creating ? "Issuing…" : "Issue Key"}
         </button>

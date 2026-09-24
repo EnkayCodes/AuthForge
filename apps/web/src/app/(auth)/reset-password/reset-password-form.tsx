@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 
@@ -71,7 +71,7 @@ export function ResetPasswordForm({ token, clientId }: Props) {
         </p>
         <a
           href={`/login?client_id=${encodeURIComponent(clientId)}`}
-          className="inline-block text-sm font-medium text-blue-600 hover:text-blue-500"
+          className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
         >
           Go to sign in
         </a>
@@ -99,7 +99,7 @@ export function ResetPasswordForm({ token, clientId }: Props) {
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
         <p className="mt-1 text-xs text-gray-500">At least 8 characters</p>
       </div>
@@ -116,17 +116,18 @@ export function ResetPasswordForm({ token, clientId }: Props) {
           autoComplete="new-password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? "Resetting…" : "Reset password"}
+        {loading ? "Resettingâ€¦" : "Reset password"}
       </button>
     </form>
   );
 }
+

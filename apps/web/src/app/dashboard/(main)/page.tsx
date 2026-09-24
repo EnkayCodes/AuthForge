@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
@@ -37,7 +37,7 @@ export default function ApplicationsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
       </div>
     );
   }
@@ -48,7 +48,7 @@ export default function ApplicationsPage() {
         <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
         >
           Create Application
         </button>
@@ -59,7 +59,7 @@ export default function ApplicationsPage() {
           <p className="text-sm text-gray-500">No applications yet.</p>
           <button
             onClick={() => setShowCreate(true)}
-            className="mt-2 text-sm font-medium text-blue-600 hover:text-blue-500"
+            className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
           >
             Create your first application
           </button>
@@ -101,3 +101,4 @@ export default function ApplicationsPage() {
     </div>
   );
 }
+

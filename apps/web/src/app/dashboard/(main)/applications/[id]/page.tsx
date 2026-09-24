@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
@@ -48,7 +48,7 @@ export default function ApplicationDetailPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default function ApplicationDetailPage({
         <p className="text-sm text-gray-500">Application not found.</p>
         <button
           onClick={() => router.push("/dashboard")}
-          className="mt-2 text-sm font-medium text-blue-600 hover:text-blue-500"
+          className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
         >
           Back to applications
         </button>
@@ -88,7 +88,7 @@ export default function ApplicationDetailPage({
               onClick={() => setActiveTab(tab)}
               className={`border-b-2 pb-3 text-sm font-medium transition-colors ${
                 activeTab === tab
-                  ? "border-blue-600 text-blue-600"
+                  ? "border-indigo-600 text-indigo-600"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
               }`}
             >
