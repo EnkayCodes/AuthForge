@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/app.ts",
+    "dev": "tsx watch --env-file-if-exists=.env src/app.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
