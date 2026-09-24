@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback, type ReactNode } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface DialogProps {
   open: boolean;
@@ -13,6 +13,8 @@ interface DialogProps {
 
 export function Dialog({ open, onClose, title, children, actions }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
+  const reduceMotion = useReducedMotion();
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -43,12 +45,16 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
   );
 
   useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", handleKeyDown);
+    if (open) {
+      previousFocus.current = document.activeElement as HTMLElement;
+      document.body.style.overflow = "hidden";
+      document.addEventListener("keydown", handleKeyDown);
+    }
     return () => {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", handleKeyDown);
+      previousFocus.current?.focus();
+      previousFocus.current = null;
     };
   }, [open, handleKeyDown]);
 
@@ -67,9 +73,10 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <motion.div
             className="fixed inset-0 bg-black/50"
-            initial={{ opacity: 0 }}
+            initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={reduceMotion ? { duration: 0 } : undefined}
             onClick={onClose}
           />
           <motion.div
@@ -78,10 +85,10 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
             aria-modal="true"
             aria-labelledby="dialog-title"
             className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ type: "spring", duration: 0.3, bounce: 0.1 }}
+            transition={reduceMotion ? { duration: 0 } : { type: "spring", duration: 0.3, bounce: 0.1 }}
           >
             <h3 id="dialog-title" className="text-lg font-semibold text-gray-900">
               {title}
