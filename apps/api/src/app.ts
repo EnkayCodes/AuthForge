@@ -18,6 +18,10 @@ import { createMfaChallengeRouter } from "./modules/mfa/mfa-challenge.routes.js"
 import { createSessionRouter } from "./modules/sessions/session.routes.js";
 import { createAuditRouter } from "./modules/audit/audit.routes.js";
 import { jwksRouter } from "./modules/jwks/jwks.routes.js";
+import { createDashboardRbacRouter } from "./modules/rbac/rbac-dashboard.routes.js";
+import { createDashboardAuditRouter } from "./modules/audit/audit-dashboard.routes.js";
+import { createDashboardSessionRouter } from "./modules/sessions/session-dashboard.routes.js";
+import { cors } from "./middleware/cors.js";
 
 export interface AppDependencies {
   mailer: Mailer;
@@ -28,6 +32,7 @@ export interface AppDependencies {
 // transport without either one reaching into a module.
 export function createApp(deps: AppDependencies = { mailer: consoleMailer }): express.Express {
   const app = express();
+  app.use(cors);
   app.use(express.json());
   app.use(healthRouter);
   app.use(developerRouter);
@@ -45,6 +50,9 @@ export function createApp(deps: AppDependencies = { mailer: consoleMailer }): ex
   app.use(createMfaChallengeRouter());
   app.use(createSessionRouter());
   app.use(createAuditRouter());
+  app.use(createDashboardRbacRouter());
+  app.use(createDashboardAuditRouter());
+  app.use(createDashboardSessionRouter());
   app.use(jwksRouter);
   app.use(errorHandler);
   return app;

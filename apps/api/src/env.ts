@@ -28,6 +28,7 @@ const schema = z.object({
   // so a string form would mean carrying a duration parser for no benefit.
   VERIFICATION_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(86400),
   PASSWORD_RESET_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  CORS_ORIGIN: z.string().default("http://localhost:3000"),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
