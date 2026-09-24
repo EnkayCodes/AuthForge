@@ -6,13 +6,17 @@ const port = Number(process.env.PORT) || 3001;
 
 // --- HTML templates ---
 
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 function layout(title: string, body: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${title}</title>
+  <title>${esc(title)}</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 640px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
@@ -43,13 +47,13 @@ function dashboardPage(user: { id: string; email: string; emailVerified: boolean
     `<h1>Dashboard</h1>
      <dl>
        <dt>User ID</dt>
-       <dd>${user.id}</dd>
+       <dd>${esc(user.id)}</dd>
        <dt>Email</dt>
-       <dd>${user.email}</dd>
+       <dd>${esc(user.email)}</dd>
        <dt>Email verified</dt>
        <dd>${String(user.emailVerified)}</dd>
        <dt>Permissions</dt>
-       <dd>${user.permissions.length > 0 ? user.permissions.join(", ") : "none"}</dd>
+       <dd>${user.permissions.length > 0 ? esc(user.permissions.join(", ")) : "none"}</dd>
      </dl>
      <p><a href="/auth/logout">Sign out</a></p>`,
   );
