@@ -2,6 +2,7 @@ import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 
 export function createTokenVerifier(
   baseUrl: string,
+  audience: string,
 ): (token: string) => Promise<JWTPayload> {
   const jwks = createRemoteJWKSet(
     new URL(`${baseUrl}/.well-known/jwks.json`),
@@ -10,6 +11,7 @@ export function createTokenVerifier(
   return async (token: string): Promise<JWTPayload> => {
     const { payload } = await jwtVerify(token, jwks, {
       algorithms: ["RS256"],
+      audience,
     });
     return payload;
   };

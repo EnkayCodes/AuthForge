@@ -26,36 +26,42 @@ export class AuthForge {
     const secret = config.cookieSecret ?? config.apiKey;
     this.cookieName = config.cookieName ?? "authforge.session";
     this.session = new SessionManager(secret);
-    this.verifyToken = createTokenVerifier(config.baseUrl);
+    this.verifyToken = createTokenVerifier(config.baseUrl, config.clientId);
   }
 
   login(): RequestHandler {
     return async (req: Request, res: Response) => {
-      const verifier = generateCodeVerifier();
-      const challenge = generateCodeChallenge(verifier);
-      const state = generateState();
+      try {
+        const verifier = generateCodeVerifier();
+        const challenge = generateCodeChallenge(verifier);
+        const state = generateState();
 
-      const pending: PendingData = { codeVerifier: verifier, state };
-      const encrypted = await this.session.encrypt(pending);
+        const pending: PendingData = { codeVerifier: verifier, state };
+        const encrypted = await this.session.encrypt(pending);
 
-      res.cookie("authforge.pending", encrypted, {
-        httpOnly: true,
-        secure: req.protocol === "https",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 600_000,
-      });
+        res.cookie("authforge.pending", encrypted, {
+          httpOnly: true,
+          secure: req.protocol === "https",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 600_000,
+        });
 
-      const url = new URL(`${this.config.baseUrl}/authorize`);
-      url.searchParams.set("response_type", "code");
-      url.searchParams.set("client_id", this.config.clientId);
-      url.searchParams.set("redirect_uri", this.config.redirectUri);
-      url.searchParams.set("state", state);
-      url.searchParams.set("code_challenge", challenge);
-      url.searchParams.set("code_challenge_method", "S256");
-      if (this.config.scope) url.searchParams.set("scope", this.config.scope);
+        const url = new URL(`${this.config.baseUrl}/authorize`);
+        url.searchParams.set("response_type", "code");
+        url.searchParams.set("client_id", this.config.clientId);
+        url.searchParams.set("redirect_uri", this.config.redirectUri);
+        url.searchParams.set("state", state);
+        url.searchParams.set("code_challenge", challenge);
+        url.searchParams.set("code_challenge_method", "S256");
+        if (this.config.scope)
+          url.searchParams.set("scope", this.config.scope);
 
-      res.redirect(url.toString());
+        res.redirect(url.toString());
+      } catch (error) {
+        this.config.onError?.(error as Error, req);
+        res.status(500).json({ error: "Internal server error" });
+      }
     };
   }
 
@@ -233,10 +239,13 @@ export class AuthForge {
   }
 
   private payloadToUser(payload: JWTPayload): AuthUser {
+    if (typeof payload.sub !== "string") {
+      throw new Error("JWT missing required 'sub' claim");
+    }
     return {
-      id: payload.sub as string,
-      email: payload.email as string,
-      emailVerified: payload.email_verified as boolean,
+      id: payload.sub,
+      email: (payload.email as string) ?? "",
+      emailVerified: (payload.email_verified as boolean) ?? false,
       permissions: (payload.permissions as string[]) ?? [],
     };
   }

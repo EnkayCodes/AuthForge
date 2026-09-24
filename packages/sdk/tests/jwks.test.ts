@@ -52,7 +52,7 @@ describe("createTokenVerifier", () => {
       .setExpirationTime("1h")
       .sign(privateKey);
 
-    const verify = createTokenVerifier(`http://localhost:${port}`);
+    const verify = createTokenVerifier(`http://localhost:${port}`, "client-id");
     const payload = await verify(token);
 
     expect(payload.sub).toBe("user-123");
@@ -62,23 +62,36 @@ describe("createTokenVerifier", () => {
   });
 
   it("rejects an expired token", async () => {
-    const token = await new SignJWT({ sub: "user-123" })
+    const token = await new SignJWT({ sub: "user-123", aud: "client-id" })
       .setProtectedHeader({ alg: "RS256", kid })
       .setExpirationTime("-1h")
       .sign(privateKey);
 
-    const verify = createTokenVerifier(`http://localhost:${port}`);
+    const verify = createTokenVerifier(`http://localhost:${port}`, "client-id");
     await expect(verify(token)).rejects.toThrow();
   });
 
   it("rejects a token signed with the wrong key", async () => {
     const otherKeys = await generateKeyPair("RS256");
-    const token = await new SignJWT({ sub: "user-123" })
+    const token = await new SignJWT({ sub: "user-123", aud: "client-id" })
       .setProtectedHeader({ alg: "RS256", kid: "wrong-kid" })
       .setExpirationTime("1h")
       .sign(otherKeys.privateKey);
 
-    const verify = createTokenVerifier(`http://localhost:${port}`);
+    const verify = createTokenVerifier(`http://localhost:${port}`, "client-id");
+    await expect(verify(token)).rejects.toThrow();
+  });
+
+  it("rejects a token issued for a different audience", async () => {
+    const token = await new SignJWT({
+      sub: "user-123",
+      aud: "other-app-client-id",
+    })
+      .setProtectedHeader({ alg: "RS256", kid })
+      .setExpirationTime("1h")
+      .sign(privateKey);
+
+    const verify = createTokenVerifier(`http://localhost:${port}`, "client-id");
     await expect(verify(token)).rejects.toThrow();
   });
 });

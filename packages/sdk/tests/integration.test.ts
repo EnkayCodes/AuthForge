@@ -4,6 +4,8 @@ import { createServer, type Server } from "node:http";
 import { generateKeyPair, exportJWK, SignJWT } from "jose";
 import request from "supertest";
 import { AuthForge } from "../src/authforge.js";
+import { SessionManager } from "../src/session.js";
+import type { SessionData } from "../src/types.js";
 
 function extractCookieValue(
   res: request.Response,
@@ -188,5 +190,47 @@ describe("Full OAuth flow integration", () => {
       .set("Accept", "application/json")
       .set("Cookie", "authforge.session=garbage-not-jwe");
     expect(res.status).toBe(401);
+  });
+
+  it("refreshes an expired access token and sets a new session cookie", async () => {
+    const app = buildApp();
+
+    const expiredAccessToken = await new SignJWT({
+      sub: "user-456",
+      email: "integration@example.com",
+      email_verified: true,
+      aud: "int-client",
+      permissions: ["admin"],
+    })
+      .setProtectedHeader({ alg: "RS256", kid })
+      .setExpirationTime("-1s")
+      .sign(privateKey);
+
+    const session = new SessionManager("integration-test-secret-key");
+    const sessionData: SessionData = {
+      accessToken: expiredAccessToken,
+      refreshToken: "refresh_int_expiring",
+      expiresAt: Math.floor(Date.now() / 1000) - 1,
+    };
+    const encryptedSession = await session.encrypt(sessionData);
+
+    const res = await request(app)
+      .get("/protected")
+      .set("Cookie", `authforge.session=${encryptedSession}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).toEqual({
+      id: "user-456",
+      email: "integration@example.com",
+      emailVerified: true,
+      permissions: ["admin"],
+    });
+
+    const newSessionCookie = extractCookieValue(res, "authforge.session");
+    expect(newSessionCookie).toBeTruthy();
+    expect(newSessionCookie).not.toBe(encryptedSession);
+
+    const decoded = await session.decrypt<SessionData>(newSessionCookie!);
+    expect(decoded?.refreshToken).toBe("refresh_int_renewed");
   });
 });
