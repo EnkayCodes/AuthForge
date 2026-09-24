@@ -72,6 +72,9 @@ importers:
       '@authforge/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       express:
         specifier: ^4.21.0
         version: 4.22.2
