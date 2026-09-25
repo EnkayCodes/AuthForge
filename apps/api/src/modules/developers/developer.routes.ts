@@ -10,7 +10,11 @@ export const developerRouter: Router = Router();
 developerRouter.post("/developers/signup", async (req, res, next) => {
   try {
     const parsed = signupSchema.safeParse(req.body);
-    if (!parsed.success) throw new HttpError(400, "Invalid signup payload");
+    if (!parsed.success) {
+      const first = parsed.error.errors[0];
+      const field = first?.path.join(".") ?? "input";
+      throw new HttpError(400, `${field}: ${first?.message ?? "invalid"}`);
+    }
     const developer = await createDeveloper(parsed.data);
     const token = signSessionToken({ developerId: developer.id });
     res.status(201).json({ developer, token });
