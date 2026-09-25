@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 const navItems = [
   {
@@ -37,11 +38,40 @@ interface SidebarProps {
 
 export function Sidebar({ mode, mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-
-  if (mode === "hidden" && !mobileOpen) return null;
+  const asideRef = useRef<HTMLElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
 
   const isOverlay = mode === "hidden" && mobileOpen;
   const collapsed = mode === "icons";
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOverlay) return;
+
+    previousFocus.current = document.activeElement as HTMLElement;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCloseRef.current();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+
+    const first = asideRef.current?.querySelector<HTMLElement>("nav a");
+    first?.focus();
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousFocus.current?.focus();
+      previousFocus.current = null;
+    };
+  }, [isOverlay]);
+
+  if (mode === "hidden" && !mobileOpen) return null;
 
   return (
     <>
@@ -53,6 +83,9 @@ export function Sidebar({ mode, mobileOpen, onClose }: SidebarProps) {
         />
       )}
       <aside
+        ref={asideRef}
+        role={isOverlay ? "dialog" : undefined}
+        aria-modal={isOverlay ? true : undefined}
         className={`flex flex-col border-r border-gray-200 bg-white ${
           isOverlay
             ? "fixed inset-y-0 left-0 z-50 w-64"

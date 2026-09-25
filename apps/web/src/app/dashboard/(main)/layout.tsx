@@ -19,7 +19,7 @@ function DashboardShell({ children }: { children: ReactNode }) {
     <div className="flex h-screen">
       <Sidebar mode={mode} mobileOpen={mobileOpen} onClose={closeMobile} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar onMenuClick={toggleMobile} showMenu={mode === "hidden"} />
+        <Topbar onMenuClick={toggleMobile} showMenu={mode === "hidden"} mobileOpen={mobileOpen} />
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6">
           <AnimatePresence mode="wait">
             <motion.div

@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 interface TopbarProps {
   onMenuClick?: () => void;
   showMenu?: boolean;
+  mobileOpen?: boolean;
 }
 
-export function Topbar({ onMenuClick, showMenu }: TopbarProps) {
+export function Topbar({ onMenuClick, showMenu, mobileOpen }: TopbarProps) {
   const { developer, logout } = useAuth();
 
   return (
@@ -18,7 +19,8 @@ export function Topbar({ onMenuClick, showMenu }: TopbarProps) {
           <button
             onClick={onMenuClick}
             className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-            aria-label="Open menu"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
           >
             <svg
               className="h-5 w-5"
