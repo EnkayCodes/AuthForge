@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, type FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { apiFetch } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export function RolesTab({ appId }: { appId: string }) {
   const [deleteTarget, setDeleteTarget] = useState<Role | null>(null);
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
   const { toast } = useToast();
+  const reduceMotion = useReducedMotion();
 
   const fetchRoles = useCallback(async () => {
     const { ok, data } = await apiFetch<{ roles: Role[] }>(`/applications/${appId}/roles`);
@@ -85,7 +86,7 @@ export function RolesTab({ appId }: { appId: string }) {
               const attachedIds = new Set(role.permissions.map((p) => p.id));
               const available = permissions.filter((p) => !attachedIds.has(p.id));
               return (
-                <motion.div key={role.id} layout initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="rounded-lg border border-gray-200 bg-white">
+                <motion.div key={role.id} layout initial={reduceMotion ? false : { opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} transition={reduceMotion ? { duration: 0 } : undefined} className="rounded-lg border border-gray-200 bg-white">
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
                       <span className="font-medium text-gray-900">{role.name}</span>

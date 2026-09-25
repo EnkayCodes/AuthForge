@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, type FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { apiFetch } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ export function PermissionsTab({ appId }: { appId: string }) {
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Permission | null>(null);
   const { toast } = useToast();
+  const reduceMotion = useReducedMotion();
 
   const fetchPermissions = useCallback(async () => {
     const { ok, data } = await apiFetch<{ permissions: Permission[] }>(`/applications/${appId}/permissions`);
@@ -71,7 +72,7 @@ export function PermissionsTab({ appId }: { appId: string }) {
             <tbody className="divide-y divide-gray-200">
               <AnimatePresence>
                 {permissions.map((perm) => (
-                  <motion.tr key={perm.id} layout initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}>
+                  <motion.tr key={perm.id} layout initial={reduceMotion ? false : { opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} transition={reduceMotion ? { duration: 0 } : undefined}>
                     <td className="px-4 py-3 font-mono text-xs font-medium text-gray-900">{perm.key}</td>
                     <td className="px-4 py-3 text-gray-500">{perm.description ?? "—"}</td>
                     <td className="px-4 py-3 text-right">
