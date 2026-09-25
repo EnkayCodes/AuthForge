@@ -75,10 +75,10 @@ export function ShieldScene({ size = "large" }: ShieldSceneProps) {
   return (
     <div
       aria-hidden="true"
-      style={{ width: "100%", height: size === "large" ? "100%" : 200 }}
+      style={{ width: "100%", height: size === "large" ? "100%" : 200, maxHeight: "100vh" }}
     >
       <CanvasErrorBoundary>
-        <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
+        <Canvas camera={{ position: [0, 0, 5.5], fov: 45 }}>
           <ambientLight intensity={0.4} />
           <directionalLight position={[5, 5, 5]} intensity={0.8} />
           <ShieldMesh />

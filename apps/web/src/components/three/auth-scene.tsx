@@ -15,8 +15,8 @@ interface AuthSceneProps {
 
 export function AuthScene({ subtitle, children }: AuthSceneProps) {
   return (
-    <main className="flex min-h-screen">
-      <div className="flex flex-1 items-center justify-center px-4">
+    <main className="flex h-screen">
+      <div className="flex flex-1 items-center justify-center overflow-y-auto px-4">
         <div className="w-full max-w-sm">
           <div className="mb-8 text-center">
             <img src="/logo.svg" alt="AuthForge" className="mx-auto h-8" />
@@ -25,7 +25,7 @@ export function AuthScene({ subtitle, children }: AuthSceneProps) {
           <div className="rounded-xl bg-white p-8 shadow-lg">{children}</div>
         </div>
       </div>
-      <div className="hidden items-center justify-center bg-gradient-to-br from-indigo-50 to-indigo-100 md:flex md:flex-1">
+      <div className="hidden items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-50 to-indigo-100 md:flex md:flex-1">
         <ShieldScene size="large" />
       </div>
     </main>
