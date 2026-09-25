@@ -61,7 +61,11 @@ export function ApiKeysTab({ appId }: { appId: string }) {
   }
 
   async function handleRevoke(keyId: string) {
-    await apiFetch(`/applications/${appId}/keys/${keyId}`, { method: "DELETE" });
+    const { ok } = await apiFetch(`/applications/${appId}/keys/${keyId}`, { method: "DELETE" });
+    if (!ok) {
+      toast("error", "Failed to revoke API key.");
+      return;
+    }
     setRevokeTarget(null);
     fetchKeys();
     toast("success", "API key revoked.");
