@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface Toast {
   id: string;
@@ -32,17 +32,24 @@ const icons: Record<Toast["type"], string> = {
 };
 
 export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <div className="fixed right-4 top-4 z-[100] flex flex-col gap-2">
+    <div
+      className="fixed right-4 top-4 z-[100] flex flex-col gap-2"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <AnimatePresence>
         {toasts.map((t) => (
           <motion.div
             key={t.id}
             layout
-            initial={{ opacity: 0, x: 100 }}
+            initial={reduceMotion ? false : { opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 100 }}
-            transition={{ type: "spring", duration: 0.4, bounce: 0.1 }}
+            transition={reduceMotion ? { duration: 0 } : { type: "spring", duration: 0.4, bounce: 0.1 }}
             className={`flex w-80 items-start gap-3 rounded-lg border border-l-4 bg-white p-4 shadow-lg ${borderColors[t.type]}`}
           >
             <span className={`text-lg font-bold leading-none ${iconColors[t.type]}`}>
@@ -51,6 +58,7 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
             <p className="flex-1 text-sm text-gray-700">{t.message}</p>
             <button
               onClick={() => onDismiss(t.id)}
+              aria-label="Dismiss notification"
               className="text-gray-400 hover:text-gray-600"
             >
               ✕
