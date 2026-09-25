@@ -57,7 +57,18 @@ export function AuditTab({ appId }: { appId: string }) {
               <tbody className="divide-y divide-gray-200">
                 {logs.map((log) => (
                   <Fragment key={log.id}>
-                    <tr onClick={() => setExpandedId(expandedId === log.id ? null : log.id)} className="cursor-pointer hover:bg-gray-50">
+                    <tr
+                      onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
+                      tabIndex={0}
+                      role="button"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setExpandedId(expandedId === log.id ? null : log.id);
+                        }
+                      }}
+                      className="cursor-pointer hover:bg-gray-50"
+                    >
                       <td className="px-4 py-3 text-xs text-gray-500">{new Date(log.createdAt).toLocaleString()}</td>
                       <td className="px-4 py-3 font-mono text-xs font-medium text-gray-900">{log.action}</td>
                       <td className="px-4 py-3 font-mono text-xs text-gray-500">{log.endUserId ?? "—"}</td>

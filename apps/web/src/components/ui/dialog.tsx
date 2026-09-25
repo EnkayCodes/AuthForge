@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, type ReactNode } from "react";
+import { useEffect, useId, useRef, useCallback, type ReactNode } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface DialogProps {
@@ -16,6 +16,7 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
   const previousFocus = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   const reduceMotion = useReducedMotion();
+  const titleId = useId();
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -95,14 +96,14 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
             ref={panelRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="dialog-title"
+            aria-labelledby={titleId}
             className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
             initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={reduceMotion ? { duration: 0 } : { type: "spring", duration: 0.3, bounce: 0.1 }}
           >
-            <h3 id="dialog-title" className="text-lg font-semibold text-gray-900">
+            <h3 id={titleId} className="text-lg font-semibold text-gray-900">
               {title}
             </h3>
             <div className="mt-2">{children}</div>

@@ -66,7 +66,12 @@ export function SettingsTab({ app, onUpdated, onDeleted }: SettingsTabProps) {
     setDeleting(true);
     try {
       const { ok } = await apiFetch(`/applications/${app.id}`, { method: "DELETE" });
-      if (ok) onDeleted();
+      if (ok) {
+        onDeleted();
+      } else {
+        toast("error", "Failed to delete application.");
+        setShowDelete(false);
+      }
     } finally {
       setDeleting(false);
     }
