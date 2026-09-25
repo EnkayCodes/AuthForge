@@ -51,7 +51,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "/developers/login",
         { method: "POST", body: JSON.stringify({ email, password }) },
       );
-      if (!ok) return (data as { message?: string }).message ?? "Invalid email or password.";
+      if (!ok) {
+        const msg = (data as { error?: { message?: string }; message?: string }).error?.message
+          ?? (data as { message?: string }).message;
+        return msg ?? "Invalid email or password.";
+      }
       setToken(data.token);
       setDeveloper(data.developer);
       return null;
@@ -68,7 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       if (!ok) {
         if (status === 409) return "An account with this email already exists.";
-        return (data as { message?: string }).message ?? "Something went wrong. Please try again.";
+        const msg = (data as { error?: { message?: string }; message?: string }).error?.message
+          ?? (data as { message?: string }).message;
+        return msg ?? "Something went wrong. Please try again.";
       }
       setToken(data.token);
       setDeveloper(data.developer);
