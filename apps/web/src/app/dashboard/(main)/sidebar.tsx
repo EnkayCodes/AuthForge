@@ -73,7 +73,7 @@ export function Sidebar({ mode, mobileOpen, onClose }: SidebarProps) {
           >
             {collapsed ? (
               <img
-                src="/icon.svg"
+                src="/shield-icon.svg"
                 alt="AuthForge"
                 className="h-8 w-8"
                 style={{ animation: "logoReveal 0.6s ease-out" }}
