@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { apiFetch } from "../../../lib/api";
+import { apiFetch } from "@/lib/api";
+import { Dialog } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/contexts/toast-context";
 
 interface CreateApplicationFormProps {
   onCreated: () => void;
@@ -11,12 +16,11 @@ interface CreateApplicationFormProps {
 export function CreateApplicationForm({ onCreated, onCancel }: CreateApplicationFormProps) {
   const [name, setName] = useState("");
   const [environment, setEnvironment] = useState("development");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
@@ -26,81 +30,51 @@ export function CreateApplicationForm({ onCreated, onCancel }: CreateApplication
       });
 
       if (!ok) {
-        setError((data as { message?: string }).message ?? "Failed to create application.");
+        toast("error", (data as { message?: string }).message ?? "Failed to create application.");
         return;
       }
 
+      toast("success", "Application created.");
       onCreated();
     } catch {
-      setError("Unable to reach the server. Please try again.");
+      toast("error", "Unable to reach the server.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50" onClick={onCancel} />
-      <div className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-        <h3 className="text-lg font-semibold text-gray-900">Create Application</h3>
-
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          {error && (
-            <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label htmlFor="app-name" className="mb-1 block text-sm font-medium">
-              Name
-            </label>
-            <input
-              id="app-name"
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              placeholder="My App"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="app-env" className="mb-1 block text-sm font-medium">
-              Environment
-            </label>
-            <select
-              id="app-env"
-              value={environment}
-              onChange={(e) => setEnvironment(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            >
-              <option value="development">Development</option>
-              <option value="staging">Staging</option>
-              <option value="production">Production</option>
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? "Creating…" : "Create"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <Dialog
+      open
+      onClose={onCancel}
+      title="Create Application"
+      actions={
+        <>
+          <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+          <Button
+            loading={loading}
+            onClick={() =>
+              (document.getElementById("create-app-form") as HTMLFormElement | null)?.requestSubmit()
+            }
+          >
+            Create
+          </Button>
+        </>
+      }
+    >
+      <form id="create-app-form" onSubmit={handleSubmit} className="mt-2 space-y-4">
+        <Input label="Name" type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="My App" />
+        <Select
+          label="Environment"
+          value={environment}
+          onChange={(e) => setEnvironment(e.target.value)}
+          options={[
+            { value: "development", label: "Development" },
+            { value: "staging", label: "Staging" },
+            { value: "production", label: "Production" },
+          ]}
+        />
+      </form>
+    </Dialog>
   );
 }
-
