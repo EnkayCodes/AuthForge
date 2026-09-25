@@ -2,7 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AuthProvider, useAuth } from "../../../contexts/auth-context";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 function SignupFormInner() {
   const [name, setName] = useState("");
@@ -38,60 +40,38 @@ function SignupFormInner() {
         </div>
       )}
 
-      <div>
-        <label htmlFor="name" className="mb-1 block text-sm font-medium">
-          Name
-        </label>
-        <input
-          id="name"
-          type="text"
-          required
-          autoComplete="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          placeholder="Jane Smith"
-        />
-      </div>
+      <Input
+        label="Name"
+        type="text"
+        required
+        autoComplete="name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Jane Smith"
+      />
 
-      <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          placeholder="you@example.com"
-        />
-      </div>
+      <Input
+        label="Email"
+        type="email"
+        required
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+      />
 
-      <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium">
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          required
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
-      </div>
+      <Input
+        label="Password"
+        type="password"
+        required
+        autoComplete="new-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? "Creating account…" : "Create account"}
-      </button>
+      <Button type="submit" loading={loading} className="w-full">
+        Create account
+      </Button>
 
       <p className="text-center text-sm text-gray-500">
         Already have an account?{" "}
@@ -113,4 +93,3 @@ export function DashboardSignupForm() {
     </AuthProvider>
   );
 }
-

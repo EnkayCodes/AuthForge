@@ -1,3 +1,4 @@
+import { AuthScene } from "@/components/three/auth-scene";
 import { SignupForm } from "./signup-form";
 
 interface SearchParams {
@@ -30,23 +31,14 @@ export default async function SignupPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">AuthForge</h1>
-          <p className="mt-1 text-sm text-gray-500">Create your account</p>
-        </div>
-
-        <div className="rounded-xl bg-white p-8 shadow-lg">
-          <SignupForm
-            clientId={params.client_id}
-            redirectUri={params.redirect_uri}
-            state={params.state}
-            codeChallenge={params.code_challenge}
-            scope={params.scope ?? ""}
-          />
-        </div>
-      </div>
-    </main>
+    <AuthScene subtitle="Create your account">
+      <SignupForm
+        clientId={params.client_id}
+        redirectUri={params.redirect_uri}
+        state={params.state}
+        codeChallenge={params.code_challenge}
+        scope={params.scope ?? ""}
+      />
+    </AuthScene>
   );
 }

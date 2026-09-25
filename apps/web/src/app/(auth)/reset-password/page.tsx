@@ -1,3 +1,4 @@
+import { AuthScene } from "@/components/three/auth-scene";
 import { ResetPasswordForm } from "./reset-password-form";
 
 interface SearchParams {
@@ -26,20 +27,11 @@ export default async function ResetPasswordPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">AuthForge</h1>
-          <p className="mt-1 text-sm text-gray-500">Set a new password</p>
-        </div>
-
-        <div className="rounded-xl bg-white p-8 shadow-lg">
-          <ResetPasswordForm
-            token={params.token}
-            clientId={params.client_id}
-          />
-        </div>
-      </div>
-    </main>
+    <AuthScene subtitle="Set a new password">
+      <ResetPasswordForm
+        token={params.token}
+        clientId={params.client_id}
+      />
+    </AuthScene>
   );
 }

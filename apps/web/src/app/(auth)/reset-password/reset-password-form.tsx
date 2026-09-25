@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -87,47 +89,30 @@ export function ResetPasswordForm({ token, clientId }: Props) {
         </div>
       )}
 
-      <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium">
-          New password
-        </label>
-        <input
-          id="password"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
-        <p className="mt-1 text-xs text-gray-500">At least 8 characters</p>
-      </div>
+      <Input
+        label="New password"
+        type="password"
+        required
+        minLength={8}
+        autoComplete="new-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        hint="At least 8 characters"
+      />
 
-      <div>
-        <label htmlFor="confirm" className="mb-1 block text-sm font-medium">
-          Confirm password
-        </label>
-        <input
-          id="confirm"
-          type="password"
-          required
-          minLength={8}
-          autoComplete="new-password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
-      </div>
+      <Input
+        label="Confirm password"
+        type="password"
+        required
+        minLength={8}
+        autoComplete="new-password"
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+      />
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? "Resetting…" : "Reset password"}
-      </button>
+      <Button type="submit" loading={loading} className="w-full">
+        Reset password
+      </Button>
     </form>
   );
 }
-
