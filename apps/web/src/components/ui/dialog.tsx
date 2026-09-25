@@ -14,12 +14,17 @@ interface DialogProps {
 export function Dialog({ open, onClose, title, children, actions }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
   const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -41,20 +46,27 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
         }
       }
     },
-    [onClose],
+    [],
   );
 
   useEffect(() => {
     if (open) {
       previousFocus.current = document.activeElement as HTMLElement;
       document.body.style.overflow = "hidden";
-      document.addEventListener("keydown", handleKeyDown);
     }
     return () => {
       document.body.style.overflow = "";
-      document.removeEventListener("keydown", handleKeyDown);
       previousFocus.current?.focus();
       previousFocus.current = null;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open, handleKeyDown]);
 
