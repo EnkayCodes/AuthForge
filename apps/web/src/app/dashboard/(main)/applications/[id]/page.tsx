@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "../../../../../lib/api";
+import { apiFetch } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SettingsTab } from "./settings-tab";
 import { ApiKeysTab } from "./api-keys-tab";
 import { RolesTab } from "./roles-tab";
@@ -24,11 +26,7 @@ interface Application {
 const tabs = ["Settings", "API Keys", "Roles", "Permissions", "Audit Log"] as const;
 type Tab = (typeof tabs)[number];
 
-export default function ApplicationDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [app, setApp] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,8 +45,12 @@ export default function ApplicationDetailPage({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
+      <div>
+        <Skeleton variant="text" width={120} className="mb-2" />
+        <Skeleton variant="text" width={250} height={28} className="mb-1" />
+        <Skeleton variant="text" width={180} className="mb-6" />
+        <Skeleton variant="rectangular" height={40} className="mb-6" />
+        <Skeleton variant="rectangular" height={300} />
       </div>
     );
   }
@@ -57,12 +59,9 @@ export default function ApplicationDetailPage({
     return (
       <div className="py-20 text-center">
         <p className="text-sm text-gray-500">Application not found.</p>
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-500"
-        >
+        <Button variant="ghost" onClick={() => router.push("/dashboard")} className="mt-2">
           Back to applications
-        </button>
+        </Button>
       </div>
     );
   }
@@ -70,23 +69,20 @@ export default function ApplicationDetailPage({
   return (
     <div>
       <div className="mb-6">
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="mb-2 text-sm text-gray-500 hover:text-gray-700"
-        >
+        <button onClick={() => router.push("/dashboard")} className="mb-2 text-sm text-gray-500 hover:text-gray-700">
           &larr; Applications
         </button>
         <h1 className="text-2xl font-bold text-gray-900">{app.name}</h1>
         <p className="mt-1 font-mono text-xs text-gray-400">{app.clientId}</p>
       </div>
 
-      <div className="mb-6 border-b border-gray-200">
+      <div className="mb-6 overflow-x-auto border-b border-gray-200">
         <nav className="-mb-px flex gap-6">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`border-b-2 pb-3 text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap border-b-2 pb-3 text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? "border-indigo-600 text-indigo-600"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
@@ -98,9 +94,7 @@ export default function ApplicationDetailPage({
         </nav>
       </div>
 
-      {activeTab === "Settings" && (
-        <SettingsTab app={app} onUpdated={fetchApp} onDeleted={() => router.push("/dashboard")} />
-      )}
+      {activeTab === "Settings" && <SettingsTab app={app} onUpdated={fetchApp} onDeleted={() => router.push("/dashboard")} />}
       {activeTab === "API Keys" && <ApiKeysTab appId={app.id} />}
       {activeTab === "Roles" && <RolesTab appId={app.id} />}
       {activeTab === "Permissions" && <PermissionsTab appId={app.id} />}
