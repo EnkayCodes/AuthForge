@@ -27,37 +27,93 @@ const navItems = [
   },
 ];
 
-export function Sidebar() {
-  const pathname = usePathname();
+type SidebarMode = "full" | "icons" | "hidden";
 
-  return (
-    <aside className="flex w-64 flex-col border-r border-gray-200 bg-white">
-      <div className="flex h-16 items-center border-b border-gray-200 px-6">
-        <Link href="/dashboard" className="text-lg font-bold tracking-tight text-gray-900">
-          AuthForge
-        </Link>
-      </div>
-
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {navItems.map((item) => {
-          const active = item.match(pathname);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-indigo-50 text-indigo-600"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
-  );
+interface SidebarProps {
+  mode: SidebarMode;
+  mobileOpen: boolean;
+  onClose: () => void;
 }
 
+export function Sidebar({ mode, mobileOpen, onClose }: SidebarProps) {
+  const pathname = usePathname();
+
+  if (mode === "hidden" && !mobileOpen) return null;
+
+  const isOverlay = mode === "hidden" && mobileOpen;
+  const collapsed = mode === "icons";
+
+  return (
+    <>
+      {isOverlay && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`flex flex-col border-r border-gray-200 bg-white ${
+          isOverlay
+            ? "fixed inset-y-0 left-0 z-50 w-64"
+            : collapsed
+              ? "w-16"
+              : "w-64"
+        }`}
+      >
+        <div
+          className={`flex h-16 items-center border-b border-gray-200 ${
+            collapsed ? "justify-center px-2" : "px-6"
+          }`}
+        >
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2"
+            onClick={isOverlay ? onClose : undefined}
+          >
+            {collapsed ? (
+              <img
+                src="/icon.svg"
+                alt="AuthForge"
+                className="h-8 w-8"
+                style={{ animation: "logoReveal 0.6s ease-out" }}
+              />
+            ) : (
+              <img
+                src="/logo.svg"
+                alt="AuthForge"
+                className="h-7"
+                style={{ animation: "logoReveal 0.6s ease-out" }}
+              />
+            )}
+          </Link>
+        </div>
+
+        <nav className={`flex-1 space-y-1 py-4 ${collapsed ? "px-2" : "px-3"}`}>
+          {navItems.map((item) => {
+            const active = item.match(pathname);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={isOverlay ? onClose : undefined}
+                title={collapsed ? item.label : undefined}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center rounded-lg transition-colors ${
+                  collapsed ? "justify-center p-2" : "gap-3 px-3 py-2"
+                } text-sm font-medium ${
+                  active
+                    ? "bg-indigo-50 text-indigo-600"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {item.icon}
+                {!collapsed && item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+    </>
+  );
+}

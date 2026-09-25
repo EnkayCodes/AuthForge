@@ -2,7 +2,8 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../contexts/auth-context";
+import { useAuth } from "@/contexts/auth-context";
+import { Spinner } from "@/components/ui/spinner";
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { developer, loading } = useAuth();
@@ -17,7 +18,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -26,4 +27,3 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
-
