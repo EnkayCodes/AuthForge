@@ -1,15 +1,34 @@
 "use client";
 
-import { useRef, useMemo, useState, useEffect } from "react";
+import { useRef, useMemo, useState, useEffect, Component, ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
   return reduced;
+}
+
+class CanvasErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    return this.state.hasError ? null : this.props.children;
+  }
 }
 
 function ShieldMesh() {
@@ -54,12 +73,17 @@ interface ShieldSceneProps {
 
 export function ShieldScene({ size = "large" }: ShieldSceneProps) {
   return (
-    <div style={{ width: "100%", height: size === "large" ? "100%" : 200 }}>
-      <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[5, 5, 5]} intensity={0.8} />
-        <ShieldMesh />
-      </Canvas>
+    <div
+      aria-hidden="true"
+      style={{ width: "100%", height: size === "large" ? "100%" : 200 }}
+    >
+      <CanvasErrorBoundary>
+        <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
+          <ambientLight intensity={0.4} />
+          <directionalLight position={[5, 5, 5]} intensity={0.8} />
+          <ShieldMesh />
+        </Canvas>
+      </CanvasErrorBoundary>
     </div>
   );
 }
